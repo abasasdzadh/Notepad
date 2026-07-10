@@ -1,4 +1,3 @@
-<!-- START OF FILE Notepad-main/index.html -->
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -7,7 +6,6 @@
     <title>Notepad</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#202020">
-    <!-- بارگذاری فونت وزیر برای متون فارسی -->
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet" type="text/css" />
     <style>
         :root {
@@ -28,6 +26,7 @@
             --font-mono: 'Consolas', 'Courier New', Courier, monospace;
             --font-size: 14px;
             --line-height: 1.5;
+            --font-family: 'Vazir', 'Segoe UI', sans-serif; /* اضافه شد */
         }
 
         [data-theme="dark"] {
@@ -61,7 +60,6 @@
             transition: background-color 0.25s, color 0.25s;
         }
 
-        /* استایل سفارشی اسکرول‌بارها */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -83,7 +81,6 @@
             height: 100vh;
         }
 
-        /* Titlebar & Tabs */
         .titlebar {
             display: flex;
             align-items: center;
@@ -176,7 +173,6 @@
             background-color: var(--bg-hover);
         }
 
-        /* Menu Bar */
         .menubar {
             display: flex;
             background-color: var(--bg-menu);
@@ -184,7 +180,6 @@
             padding: 2px 8px;
             z-index: 10;
             white-space: nowrap;
-
         }
         .menubar::-webkit-scrollbar {
             display: none;
@@ -214,6 +209,8 @@
             min-width: 220px;
             padding: 6px 0;
             z-index: 100;
+            max-height: 300px;
+            overflow-y: auto;
         }
 
         [dir="rtl"] .dropdown {
@@ -258,7 +255,6 @@
             font-family: var(--font-mono);
         }
 
-        /* Workspace & Editor */
         .workspace {
             display: flex;
             flex-grow: 1;
@@ -323,7 +319,6 @@
             overflow-x: auto;
         }
 
-        /* Status Bar */
         .statusbar {
             display: flex;
             justify-content: space-between;
@@ -341,7 +336,6 @@
             gap: 16px;
         }
 
-        /* Dialogs / Modals */
         .modal {
             display: none;
             position: fixed;
@@ -446,7 +440,6 @@
             box-shadow: 0 0 0 2px rgba(0, 103, 184, 0.2);
         }
 
-        /* Search / Replace Panel */
         .search-panel {
             display: none;
             position: absolute;
@@ -480,7 +473,6 @@
             align-items: center;
         }
 
-        /* Responsive Breakpoints */
         @media (max-width: 768px) {
             .statusbar {
                 flex-direction: column;
@@ -526,15 +518,11 @@
 <body data-theme="dark" dir="rtl" lang="fa">
 
 <div class="window">
-    <!-- Titlebar & Tabs -->
     <div class="titlebar">
-        <div class="tab-container" id="tab-container">
-            <!-- Tabs dynamically loaded -->
-        </div>
+        <div class="tab-container" id="tab-container"></div>
         <button class="add-tab-btn" id="add-tab" title="تب جدید (Ctrl+N)">+</button>
     </div>
 
-    <!-- Menu Bar -->
     <div class="menubar" id="menubar">
         <div class="menu-item" id="root-menu-file">
             <span class="menu-title">فایل</span>
@@ -560,6 +548,8 @@
                 <div class="dropdown-divider"></div>
                 <div class="dropdown-item" id="menu-select-all">انتخاب همه <span class="shortcut-hint">Ctrl+A</span></div>
                 <div class="dropdown-item" id="menu-insert-date">درج تاریخ/ساعت <span class="shortcut-hint">F5</span></div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" id="menu-rename">تغییر نام فایل <span class="shortcut-hint">F2</span></div>
             </div>
         </div>
         <div class="menu-item" id="root-menu-view">
@@ -574,6 +564,7 @@
                 <div class="dropdown-item" id="menu-toggle-status">نمایش نوار وضعیت</div>
                 <div class="dropdown-divider"></div>
                 <div class="dropdown-item" id="menu-theme-toggle">تغییر تم (تاریک/روشن)</div>
+                <div class="dropdown-item" id="menu-toggle-dir">تغییر جهت نوشتار <span class="shortcut-hint">Ctrl+Shift+R</span></div>
             </div>
         </div>
         <div class="menu-item" id="menu-settings-trigger">تنظیمات</div>
@@ -585,9 +576,7 @@
         </div>
     </div>
 
-    <!-- Workspace -->
     <div class="workspace">
-        <!-- Find & Replace Floating Panel -->
         <div class="search-panel" id="search-panel">
             <div class="search-row">
                 <input type="text" id="find-input" class="input-field" placeholder="جستجو..." style="flex-grow: 1;">
@@ -614,7 +603,6 @@
         </div>
     </div>
 
-    <!-- Status Bar -->
     <div class="statusbar" id="statusbar">
         <div class="statusbar-section">
             <span id="status-caret">خط ۱، ستون ۱</span>
@@ -650,9 +638,7 @@
         <div class="dialog-body">
             <div class="input-group">
                 <label id="setting-font-label">فونت ویرایشگر</label>
-                <select id="setting-font" class="input-field">
-                    <!-- Dynamic based on language -->
-                </select>
+                <select id="setting-font" class="input-field"></select>
             </div>
             <div class="input-group">
                 <label id="setting-fontsize-label">اندازه فونت (پیکسل)</label>
@@ -683,7 +669,7 @@
         <div class="dialog-body">
             <div class="input-group">
                 <label id="goto-line-label">شماره خط را وارد کنید:</label>
-                <input type="number" id="goto-line-input" class="input-field" min="1" value="1">
+                <input type="number" id="goto-line-input" class="input-field" min="1" value="1" dir="ltr">
             </div>
         </div>
         <div class="dialog-footer">
