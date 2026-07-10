@@ -1,3 +1,4 @@
+<!-- START OF FILE Notepad-main/index.html -->
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -6,6 +7,8 @@
     <title>Notepad</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#202020">
+    <!-- بارگذاری فونت وزیر برای متون فارسی -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet" type="text/css" />
     <style>
         :root {
             --bg-app: #f3f3f3;
@@ -18,9 +21,11 @@
             --accent-color: #0067b8;
             --accent-hover: #005da6;
             --status-bg: #f3f3f3;
-            --modal-bg: rgba(255, 255, 255, 0.9);
+            --modal-bg: rgba(255, 255, 255, 0.4);
             --dialog-bg: #ffffff;
-            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-vazir: 'Vazir', 'Segoe UI', Tahoma, sans-serif;
+            --font-english: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            --font-mono: 'Consolas', 'Courier New', Courier, monospace;
             --font-size: 14px;
             --line-height: 1.5;
         }
@@ -36,7 +41,7 @@
             --accent-color: #60cdff;
             --accent-hover: #0078d4;
             --status-bg: #202020;
-            --modal-bg: rgba(32, 32, 32, 0.85);
+            --modal-bg: rgba(32, 32, 32, 0.5);
             --dialog-bg: #2b2b2b;
         }
 
@@ -44,7 +49,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: var(--font-family);
+            font-family: var(--font-vazir);
             user-select: none;
         }
 
@@ -53,7 +58,23 @@
             overflow: hidden;
             background-color: var(--bg-app);
             color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s;
+            transition: background-color 0.25s, color 0.25s;
+        }
+
+        /* استایل سفارشی و مدرن اسکرول‌بارها */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(128, 128, 128, 0.3);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(128, 128, 128, 0.5);
         }
 
         .window {
@@ -67,7 +88,7 @@
             display: flex;
             align-items: center;
             background-color: var(--bg-app);
-            padding: 4px 8px 0 8px;
+            padding: 6px 12px 0 12px;
             gap: 10px;
             border-bottom: 1px solid var(--border-color);
         }
@@ -75,9 +96,13 @@
         .tab-container {
             display: flex;
             align-items: flex-end;
-            gap: 4px;
+            gap: 6px;
             overflow-x: auto;
             flex-grow: 1;
+            scrollbar-width: none; /* Hide scrollbar for clean UI */
+        }
+        .tab-container::-webkit-scrollbar {
+            display: none;
         }
 
         .tab {
@@ -88,18 +113,19 @@
             border: 1px solid transparent;
             border-bottom: none;
             border-radius: 8px 8px 0 0;
-            padding: 6px 16px;
-            font-size: 12px;
+            padding: 8px 16px;
+            font-size: 12.5px;
             cursor: pointer;
             min-width: 120px;
-            max-width: 200px;
+            max-width: 180px;
             justify-content: space-between;
-            transition: background-color 0.2s;
+            transition: all 0.2s ease;
         }
 
         .tab.active {
             background-color: var(--bg-active-tab);
             border-color: var(--border-color);
+            box-shadow: 0 -2px 6px rgba(0,0,0,0.04);
         }
 
         .tab:hover:not(.active) {
@@ -120,47 +146,58 @@
             cursor: pointer;
             font-size: 10px;
             border-radius: 50%;
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
+            opacity: 0.7;
+            transition: all 0.2s;
         }
 
         .tab-close:hover {
             background-color: var(--bg-hover);
+            opacity: 1;
         }
 
         .add-tab-btn {
             background: none;
             border: none;
             color: var(--text-color);
-            font-size: 18px;
+            font-size: 20px;
             cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 4px 10px;
+            border-radius: 6px;
             margin-bottom: 4px;
+            transition: background-color 0.2s;
         }
 
         .add-tab-btn:hover {
             background-color: var(--bg-hover);
         }
 
-        /* Menu Bar */
+        /* Menu Bar (مقاوم در برابر Overflow دستگاه‌های کوچک) */
         .menubar {
             display: flex;
             background-color: var(--bg-menu);
             border-bottom: 1px solid var(--border-color);
             padding: 2px 8px;
             z-index: 10;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+        }
+        .menubar::-webkit-scrollbar {
+            display: none;
         }
 
         .menu-item {
             position: relative;
-            padding: 6px 12px;
+            padding: 6px 14px;
             font-size: 13px;
             cursor: pointer;
-            border-radius: 4px;
+            border-radius: 6px;
+            transition: background-color 0.2s;
         }
 
         .menu-item:hover {
@@ -171,14 +208,23 @@
             display: none;
             position: absolute;
             top: 100%;
-            right: 0;
             background-color: var(--dialog-bg);
             border: 1px solid var(--border-color);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            border-radius: 6px;
-            min-width: 180px;
-            padding: 4px 0;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            border-radius: 8px;
+            min-width: 220px;
+            padding: 6px 0;
             z-index: 100;
+        }
+
+        [dir="rtl"] .dropdown {
+            right: 0;
+            left: auto;
+        }
+
+        [dir="ltr"] .dropdown {
+            left: 0;
+            right: auto;
         }
 
         .menu-item.active .dropdown {
@@ -189,10 +235,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 6px 16px;
+            padding: 8px 16px;
             font-size: 13px;
             color: var(--text-color);
             text-decoration: none;
+            transition: background-color 0.15s;
         }
 
         .dropdown-item:hover {
@@ -202,13 +249,14 @@
         .dropdown-divider {
             height: 1px;
             background-color: var(--border-color);
-            margin: 4px 0;
+            margin: 6px 0;
         }
 
         .shortcut-hint {
             opacity: 0.5;
             font-size: 11px;
             margin-right: 15px;
+            font-family: var(--font-mono);
         }
 
         /* Workspace & Editor */
@@ -228,17 +276,24 @@
         }
 
         .gutter {
-            width: 45px;
+            width: 50px;
             background-color: var(--bg-app);
-            border-left: 1px solid var(--border-color);
             text-align: center;
             padding-top: 10px;
-            font-family: monospace;
             font-size: var(--font-size);
             line-height: var(--line-height);
             color: #858585;
             overflow: hidden;
             user-select: none;
+            transition: width 0.2s;
+        }
+
+        [dir="rtl"] .gutter {
+            border-left: 1px solid var(--border-color);
+        }
+
+        [dir="ltr"] .gutter {
+            border-right: 1px solid var(--border-color);
         }
 
         .editor {
@@ -248,14 +303,12 @@
             resize: none;
             background-color: transparent;
             color: var(--text-color);
-            font-family: var(--font-family);
             font-size: var(--font-size);
             line-height: var(--line-height);
             padding: 10px;
             width: 100%;
             height: 100%;
             overflow-y: auto;
-            direction: rtl;
             user-select: text;
         }
 
@@ -275,9 +328,11 @@
             justify-content: space-between;
             background-color: var(--status-bg);
             border-top: 1px solid var(--border-color);
-            padding: 4px 12px;
+            padding: 6px 14px;
             font-size: 12px;
             color: var(--text-color);
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
         .statusbar-section {
@@ -294,7 +349,8 @@
             width: 100vw;
             height: 100vh;
             background-color: var(--modal-bg);
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             justify-content: center;
             align-items: center;
             z-index: 1000;
@@ -303,12 +359,12 @@
         .dialog {
             background-color: var(--dialog-bg);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            width: 400px;
+            border-radius: 12px;
+            width: 420px;
             max-width: 90%;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-            padding: 20px;
-            animation: fadeIn 0.2s ease-out;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+            padding: 24px;
+            animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         @keyframes fadeIn {
@@ -318,16 +374,16 @@
 
         .dialog-header {
             font-weight: 600;
-            font-size: 16px;
-            margin-bottom: 15px;
+            font-size: 17px;
+            margin-bottom: 18px;
         }
 
         .dialog-body {
             font-size: 14px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
         }
 
         .dialog-footer {
@@ -337,13 +393,19 @@
         }
 
         .btn {
-            padding: 6px 16px;
-            border-radius: 4px;
+            padding: 8px 18px;
+            border-radius: 6px;
             border: 1px solid var(--border-color);
             background-color: var(--bg-hover);
             color: var(--text-color);
             cursor: pointer;
             font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
         }
 
         .btn-primary {
@@ -359,64 +421,122 @@
         .input-group {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
         }
 
         .input-group label {
-            font-size: 12px;
+            font-size: 12.5px;
+            font-weight: 500;
+            opacity: 0.9;
         }
 
         .input-field {
-            padding: 6px;
-            border-radius: 4px;
+            padding: 8px 12px;
+            border-radius: 6px;
             border: 1px solid var(--border-color);
             background-color: var(--bg-editor);
             color: var(--text-color);
             outline: none;
+            transition: all 0.2s;
         }
 
-        /* Search / Replace Panel */
+        .input-field:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(0, 103, 184, 0.2);
+        }
+
+        /* Search / Replace Panel (مدرن و شیشه‌ای) */
         .search-panel {
             display: none;
             position: absolute;
-            top: 10px;
-            left: 10px;
+            top: 12px;
             background-color: var(--dialog-bg);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
             z-index: 50;
             flex-direction: column;
-            gap: 8px;
-            width: 320px;
+            gap: 10px;
+            width: 340px;
+            max-width: calc(100% - 24px);
+            transition: all 0.3s ease;
+        }
+
+        [dir="rtl"] .search-panel {
+            left: 12px;
+            right: auto;
+        }
+
+        [dir="ltr"] .search-panel {
+            right: 12px;
+            left: auto;
         }
 
         .search-row {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             align-items: center;
         }
 
-        /* Utility */
-        .rtl { direction: rtl; }
-        .ltr { direction: ltr; }
+        /* Responsive Breakpoints */
+        @media (max-width: 768px) {
+            .statusbar {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .statusbar-section {
+                width: 100%;
+                justify-content: center;
+            }
+            .search-panel {
+                top: 0;
+                left: 0 !important;
+                right: 0 !important;
+                width: 100%;
+                max-width: 100%;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+            }
+        }
+
+        /* کدهای چاپ (فقط محتوای ادیتور به صورت تمیز چاپ می‌شود) */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .workspace, .editor-container, #editor {
+                visibility: visible !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background: #ffffff !important;
+                color: #000000 !important;
+            }
+            .titlebar, .menubar, .statusbar, .gutter, .search-panel, .modal {
+                display: none !important;
+            }
+        }
     </style>
 </head>
-<body data-theme="dark">
+<body data-theme="dark" dir="rtl" lang="fa">
 
 <div class="window">
     <!-- Titlebar & Tabs -->
     <div class="titlebar">
         <div class="tab-container" id="tab-container">
-            <!-- Tabs will be dynamically loaded -->
+            <!-- Tabs dynamically loaded -->
         </div>
         <button class="add-tab-btn" id="add-tab" title="تب جدید (Ctrl+N)">+</button>
     </div>
 
     <!-- Menu Bar -->
     <div class="menubar" id="menubar">
-        <div class="menu-item">فایل
+        <div class="menu-item" id="root-menu-file">فایل
             <div class="dropdown">
                 <div class="dropdown-item" id="menu-new">جدید <span class="shortcut-hint">Ctrl+N</span></div>
                 <div class="dropdown-item" id="menu-open">باز کردن... <span class="shortcut-hint">Ctrl+O</span></div>
@@ -427,7 +547,7 @@
                 <div class="dropdown-item" id="menu-close">بستن تب <span class="shortcut-hint">Ctrl+W</span></div>
             </div>
         </div>
-        <div class="menu-item">ویرایش
+        <div class="menu-item" id="root-menu-edit">ویرایش
             <div class="dropdown">
                 <div class="dropdown-item" id="menu-undo">واگرد <span class="shortcut-hint">Ctrl+Z</span></div>
                 <div class="dropdown-item" id="menu-redo">مجدد <span class="shortcut-hint">Ctrl+Y</span></div>
@@ -440,7 +560,7 @@
                 <div class="dropdown-item" id="menu-insert-date">درج تاریخ/ساعت <span class="shortcut-hint">F5</span></div>
             </div>
         </div>
-        <div class="menu-item">نمایش
+        <div class="menu-item" id="root-menu-view">نمایش
             <div class="dropdown">
                 <div class="dropdown-item" id="menu-zoom-in">بزرگنمایی <span class="shortcut-hint">Ctrl++</span></div>
                 <div class="dropdown-item" id="menu-zoom-out">کوچکنمایی <span class="shortcut-hint">Ctrl+-</span></div>
@@ -454,7 +574,7 @@
             </div>
         </div>
         <div class="menu-item" id="menu-settings-trigger">تنظیمات</div>
-        <div class="menu-item">راهنما
+        <div class="menu-item" id="root-menu-help">راهنما
             <div class="dropdown">
                 <div class="dropdown-item" id="menu-about">درباره Notepad</div>
             </div>
@@ -476,9 +596,11 @@
                 <button class="btn" id="replace-btn">جایگزینی</button>
                 <button class="btn" id="replace-all-btn">همه</button>
             </div>
-            <div style="font-size: 11px; display: flex; gap: 10px;">
-                <label><input type="checkbox" id="match-case-chk"> تطابق بزرگی/کوچکی حروف</label>
-                <span id="search-results-count" style="margin-right: auto;">0/0</span>
+            <div style="font-size: 11px; display: flex; gap: 10px; align-items: center; justify-content: space-between; width: 100%;">
+                <label id="match-case-label" style="cursor: pointer; display: flex; gap: 4px; align-items: center;">
+                    <input type="checkbox" id="match-case-chk"> تطابق بزرگی/کوچکی حروف
+                </label>
+                <span id="search-results-count">0/0</span>
             </div>
         </div>
 
@@ -509,7 +631,7 @@
         <div class="dialog-body">
             <p><strong>Notepad (PWA) نسخه وب</strong></p>
             <p>یک ویرایشگر متن سبک و سریع با ظاهر مدرن ویندوز ۱۱.</p>
-            <p>سازگار با وب، پیاده‌سازی شده به‌صورت آفلاین و دارای قابلیت نصب به صورت PWA [PWA].</p>
+            <p>سازگار با وب، پیاده‌سازی شده به‌صورت آفلاین و دارای قابلیت نصب به صورت PWA.</p>
             <p>توسعه‌یافته با جاوااسکریپت استاندارد.</p>
         </div>
         <div class="dialog-footer">
@@ -523,27 +645,24 @@
         <div class="dialog-header">تنظیمات وب‌اپ</div>
         <div class="dialog-body">
             <div class="input-group">
-                <label>فونت ویرایشگر</label>
+                <label id="setting-font-label">فونت ویرایشگر</label>
                 <select id="setting-font" class="input-field">
-                    <option value="'Segoe UI', sans-serif">Segoe UI</option>
-                    <option value="Consolas, monospace">Consolas</option>
-                    <option value="'Courier New', monospace">Courier New</option>
-                    <option value="Tahoma, Geneva, sans-serif">Tahoma (مناسب فارسی)</option>
+                    <!-- Dynamic based on language -->
                 </select>
             </div>
             <div class="input-group">
-                <label>اندازه فونت (پیکسل)</label>
+                <label id="setting-fontsize-label">اندازه فونت (پیکسل)</label>
                 <input type="number" id="setting-fontsize" class="input-field" min="10" max="48" value="14">
             </div>
             <div class="input-group">
-                <label>فاصله بین خطوط</label>
+                <label id="setting-lineheight-label">فاصله بین خطوط</label>
                 <input type="number" id="setting-lineheight" class="input-field" min="1" max="3" step="0.1" value="1.5">
             </div>
             <div class="input-group">
-                <label>جهت پیش‌فرض متن</label>
-                <select id="setting-dir" class="input-field">
-                    <option value="rtl">راست‌چین (فارسی/عربی)</option>
-                    <option value="ltr">چپ‌چین (انگلیسی/کد)</option>
+                <label id="setting-lang-label">زبان برنامه</label>
+                <select id="setting-lang" class="input-field">
+                    <option value="fa">فارسی (FA)</option>
+                    <option value="en">English (EN)</option>
                 </select>
             </div>
         </div>
@@ -559,7 +678,7 @@
         <div class="dialog-header">برو به خط</div>
         <div class="dialog-body">
             <div class="input-group">
-                <label>شماره خط را وارد کنید:</label>
+                <label id="goto-line-label">شماره خط را وارد کنید:</label>
                 <input type="number" id="goto-line-input" class="input-field" min="1" value="1">
             </div>
         </div>
