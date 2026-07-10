@@ -20,6 +20,7 @@ const locales = {
         menuGoto: 'برو به خط...',
         menuSelectAll: 'انتخاب همه',
         menuInsertDate: 'درج تاریخ/ساعت',
+        menuRename: 'تغییر نام فایل',
         menuView: 'نمایش',
         menuZoomIn: 'بزرگنمایی',
         menuZoomOut: 'کوچکنمایی',
@@ -28,20 +29,18 @@ const locales = {
         menuToggleLines: 'نمایش شماره خطوط',
         menuToggleStatus: 'نمایش نوار وضعیت',
         menuThemeToggle: 'تغییر تم (تاریک/روشن)',
+        menuToggleDir: 'تغییر جهت نوشتار',
         menuSettings: 'تنظیمات',
         menuHelp: 'راهنما',
         menuAbout: 'درباره Notepad',
-        
         findPlaceholder: 'جستجو...',
         replacePlaceholder: 'جایگزینی با...',
         findBtnReplace: 'جایگزینی',
         findBtnReplaceAll: 'همه',
         matchCaseLabel: 'تطابق بزرگی/کوچکی حروف',
-        
         statusCaret: 'خط {line}، ستون {col}',
         statusStats: 'تعداد کاراکتر: {chars} | کلمات: {words}',
         statusDirection: 'راست‌چین (RTL)',
-        
         modalAboutTitle: 'درباره Notepad وب',
         modalAboutText1: 'Notepad (PWA) نسخه وب',
         modalAboutText2: 'یک ویرایشگر متن سبک و سریع با ظاهر مدرن ویندوز ۱۱.',
@@ -49,18 +48,15 @@ const locales = {
         modalAboutText4: 'توسعه‌یافته با جاوااسکریپت استاندارد.',
         modalClose: 'بستن',
         modalCancel: 'لغو',
-        
         modalSettingsTitle: 'تنظیمات وب‌اپ',
         settingFontLabel: 'فونت ویرایشگر',
         settingFontSizeLabel: 'اندازه فونت (پیکسل)',
         settingLineHeightLabel: 'فاصله بین خطوط',
         settingLangLabel: 'زبان برنامه',
         settingSave: 'ذخیره تنظیمات',
-        
         modalGotoTitle: 'برو به خط',
         modalGotoLabel: 'شماره خط را وارد کنید:',
         modalGotoBtn: 'برو',
-        
         defaultTabTitle: 'سند جدید',
         unsavedWarning: 'تغییرات ذخیره نشده‌اند. آیا مایل به بستن هستید؟'
     },
@@ -83,6 +79,7 @@ const locales = {
         menuGoto: 'Go To Line...',
         menuSelectAll: 'Select All',
         menuInsertDate: 'Insert Date/Time',
+        menuRename: 'Rename File',
         menuView: 'View',
         menuZoomIn: 'Zoom In',
         menuZoomOut: 'Zoom Out',
@@ -91,20 +88,18 @@ const locales = {
         menuToggleLines: 'Show Line Numbers',
         menuToggleStatus: 'Show Status Bar',
         menuThemeToggle: 'Toggle Theme (Dark/Light)',
+        menuToggleDir: 'Toggle Text Direction',
         menuSettings: 'Settings',
         menuHelp: 'Help',
         menuAbout: 'About Notepad',
-        
         findPlaceholder: 'Find...',
         replacePlaceholder: 'Replace with...',
         findBtnReplace: 'Replace',
         findBtnReplaceAll: 'Replace All',
         matchCaseLabel: 'Match case',
-        
         statusCaret: 'Ln {line}, Col {col}',
         statusStats: 'Chars: {chars} | Words: {words}',
         statusDirection: 'Left-to-Right (LTR)',
-        
         modalAboutTitle: 'About Web Notepad',
         modalAboutText1: 'Notepad (PWA) Web Edition',
         modalAboutText2: 'A lightweight and fast text editor with a modern Windows 11 style.',
@@ -112,18 +107,15 @@ const locales = {
         modalAboutText4: 'Developed with standard modern JavaScript.',
         modalClose: 'Close',
         modalCancel: 'Cancel',
-        
         modalSettingsTitle: 'Web App Settings',
         settingFontLabel: 'Editor Font',
         settingFontSizeLabel: 'Font Size (px)',
         settingLineHeightLabel: 'Line Height',
         settingLangLabel: 'App Language',
         settingSave: 'Save Settings',
-        
         modalGotoTitle: 'Go to Line',
         modalGotoLabel: 'Enter line number:',
         modalGotoBtn: 'Go',
-        
         defaultTabTitle: 'Untitled',
         unsavedWarning: 'Changes have not been saved. Do you want to close this tab?'
     }
@@ -140,7 +132,8 @@ let state = {
     lang: 'fa',
     fontSize: 14,
     lineHeight: 1.5,
-    fontFamily: "'Vazir', sans-serif"
+    fontFamily: "'Vazir', sans-serif",
+    dir: 'rtl'
 };
 
 const editor = document.getElementById('editor');
@@ -160,6 +153,8 @@ let searchState = {
     query: ''
 };
 
+let autoSaveTimer = null;
+
 function init() {
     loadSettings();
     applyTheme();
@@ -174,6 +169,8 @@ function init() {
     }
     
     registerEvents();
+    startAutoSave();
+    loadAutoSavedContent();
 }
 
 function saveSettings() {
@@ -186,7 +183,8 @@ function saveSettings() {
         lang: state.lang,
         fontSize: state.fontSize,
         lineHeight: state.lineHeight,
-        fontFamily: state.fontFamily
+        fontFamily: state.fontFamily,
+        dir: state.dir
     }));
 }
 
@@ -206,39 +204,32 @@ function applyLocalization(lang) {
     const t = locales[lang];
     if (!t) return;
 
-    document.body.setAttribute('dir', t.dir);
+    document.body.setAttribute('dir', state.dir);
     document.body.setAttribute('lang', t.lang);
     
-    if (lang === 'fa') {
+    if (state.dir === 'rtl') {
         state.fontFamily = "'Vazir', sans-serif";
     } else if (state.fontFamily === "'Vazir', sans-serif") {
         state.fontFamily = "Consolas, monospace";
     }
     
-    // بروزرسانی امن عنوان منوهای ریشه بر اساس ساختار جدید
     const fileTitle = document.querySelector('#root-menu-file .menu-title');
     if (fileTitle) fileTitle.textContent = t.menuFile;
-
     const editTitle = document.querySelector('#root-menu-edit .menu-title');
     if (editTitle) editTitle.textContent = t.menuEdit;
-
     const viewTitle = document.querySelector('#root-menu-view .menu-title');
     if (viewTitle) viewTitle.textContent = t.menuView;
-
     const helpTitle = document.querySelector('#root-menu-help .menu-title');
     if (helpTitle) helpTitle.textContent = t.menuHelp;
-
     const menuSettingsTrigger = document.getElementById('menu-settings-trigger');
     if (menuSettingsTrigger) menuSettingsTrigger.textContent = t.menuSettings;
 
-    // دراپ‌دان‌ها
     updateMenuShortcut('menu-new', t.menuNew, 'Ctrl+N');
     updateMenuShortcut('menu-open', t.menuOpen, 'Ctrl+O');
     updateMenuShortcut('menu-save', t.menuSave, 'Ctrl+S');
     updateMenuShortcut('menu-save-as', t.menuSaveAs, 'Ctrl+Shift+S');
     updateMenuShortcut('menu-print', t.menuPrint, 'Ctrl+P');
     updateMenuShortcut('menu-close', t.menuClose, 'Ctrl+W');
-
     updateMenuShortcut('menu-undo', t.menuUndo, 'Ctrl+Z');
     updateMenuShortcut('menu-redo', t.menuRedo, 'Ctrl+Y');
     updateMenuShortcut('menu-find', t.menuFind, 'Ctrl+F');
@@ -246,13 +237,13 @@ function applyLocalization(lang) {
     updateMenuShortcut('menu-goto', t.menuGoto, 'Ctrl+G');
     updateMenuShortcut('menu-select-all', t.menuSelectAll, 'Ctrl+A');
     updateMenuShortcut('menu-insert-date', t.menuInsertDate, 'F5');
-
+    updateMenuShortcut('menu-rename', t.menuRename, 'F2');
     updateMenuShortcut('menu-zoom-in', t.menuZoomIn, 'Ctrl++');
     updateMenuShortcut('menu-zoom-out', t.menuZoomOut, 'Ctrl+-');
     updateMenuShortcut('menu-zoom-reset', t.menuZoomReset, 'Ctrl+0');
+    updateMenuShortcut('menu-toggle-dir', t.menuToggleDir, 'Ctrl+Shift+R');
 
     document.getElementById('menu-about').textContent = t.menuAbout;
-
     updateToggleMenuTexts();
 
     findInput.placeholder = t.findPlaceholder;
@@ -261,7 +252,6 @@ function applyLocalization(lang) {
     document.getElementById('replace-all-btn').textContent = t.findBtnReplaceAll;
     document.getElementById('match-case-label').innerHTML = `<input type="checkbox" id="match-case-chk" ${matchCaseChk.checked ? 'checked' : ''}> ` + t.matchCaseLabel;
 
-    // مودال‌ها
     const aboutModal = document.getElementById('modal-about');
     aboutModal.querySelector('.dialog-header').textContent = t.modalAboutTitle;
     const aboutBodyPs = aboutModal.querySelectorAll('.dialog-body p');
@@ -287,9 +277,7 @@ function applyLocalization(lang) {
     gotoModal.querySelector('.modal-close-btn').textContent = t.modalCancel;
 
     populateFontOptions(lang);
-
     editor.placeholder = lang === 'fa' ? 'تایپ کنید...' : 'Type here...';
-
     updateStatusBar();
 }
 
@@ -311,7 +299,6 @@ function populateFontOptions(lang) {
     const fontSelect = document.getElementById('setting-font');
     if (!fontSelect) return;
     fontSelect.innerHTML = '';
-    
     if (lang === 'fa') {
         const opt = document.createElement('option');
         opt.value = "'Vazir', sans-serif";
@@ -351,12 +338,10 @@ function applySettingsStyles() {
 
     gutter.style.display = state.showLines ? 'block' : 'none';
     statusbar.style.display = state.showStatus ? 'flex' : 'none';
-    
     updateGutter();
 }
 
 function createNewTab(title = null, content = '', path = null) {
-    // ایجاد آیدی منحصر به فرد مطمئن تر برای جلوگیری از هم‌پوشانی آیدی تب‌ها
     const newId = Date.now().toString() + Math.random().toString(36).substring(2, 7);
     const newTab = {
         id: newId,
@@ -370,6 +355,19 @@ function createNewTab(title = null, content = '', path = null) {
     state.tabs.push(newTab);
     renderTabs();
     selectTab(newId);
+    // بارگذاری محتوای ذخیره شده خودکار برای این تب
+    const saved = localStorage.getItem('notepad_autosave_' + newId);
+    if (saved) {
+        const tab = state.tabs.find(t => t.id === newId);
+        if (tab) {
+            tab.content = saved;
+            editor.value = saved;
+            tab.history = [saved];
+            tab.historyIndex = 0;
+            updateGutter();
+            updateStatusBar();
+        }
+    }
 }
 
 function renderTabs() {
@@ -377,12 +375,10 @@ function renderTabs() {
     state.tabs.forEach(tab => {
         const tabEl = document.createElement('div');
         tabEl.className = `tab ${tab.id === state.activeTabId ? 'active' : ''}`;
-        
         const titleSpan = document.createElement('span');
         titleSpan.className = 'tab-title';
         titleSpan.textContent = (tab.isDirty ? '* ' : '') + tab.title;
         titleSpan.addEventListener('click', () => selectTab(tab.id));
-        
         const closeBtn = document.createElement('button');
         closeBtn.className = 'tab-close';
         closeBtn.innerHTML = '✕';
@@ -390,7 +386,6 @@ function renderTabs() {
             e.stopPropagation();
             closeTab(tab.id);
         });
-
         tabEl.appendChild(titleSpan);
         tabEl.appendChild(closeBtn);
         tabContainer.appendChild(tabEl);
@@ -404,13 +399,11 @@ function selectTab(id) {
             currentTab.content = editor.value;
         }
     }
-    
     state.activeTabId = id;
     const tab = state.tabs.find(t => t.id === id);
     if (tab) {
         editor.value = tab.content;
     }
-    
     renderTabs();
     updateGutter();
     updateStatusBar();
@@ -420,15 +413,14 @@ function selectTab(id) {
 function closeTab(id) {
     const tabIndex = state.tabs.findIndex(t => t.id === id);
     if (tabIndex === -1) return;
-    
     const tab = state.tabs[tabIndex];
     if (tab.isDirty) {
         const t = locales[state.lang];
         if (!confirm(t.unsavedWarning)) return;
     }
-    
+    // پاک کردن auto-save
+    localStorage.removeItem('notepad_autosave_' + id);
     state.tabs.splice(tabIndex, 1);
-    
     if (state.tabs.length === 0) {
         createNewTab();
     } else {
@@ -439,6 +431,26 @@ function closeTab(id) {
             renderTabs();
         }
     }
+}
+
+function renameTab() {
+    const tab = state.tabs.find(t => t.id === state.activeTabId);
+    if (!tab) return;
+    const t = locales[state.lang];
+    const newName = prompt(t.menuRename + ':', tab.title);
+    if (newName && newName.trim() !== '') {
+        tab.title = newName.trim();
+        tab.isDirty = true; // تغییر نام هم به عنوان تغییر محسوب می‌شود
+        renderTabs();
+        saveSettings();
+    }
+}
+
+function toggleDirection() {
+    state.dir = state.dir === 'rtl' ? 'ltr' : 'rtl';
+    document.body.setAttribute('dir', state.dir);
+    updateStatusBar();
+    saveSettings();
 }
 
 function updateGutter() {
@@ -455,32 +467,26 @@ function updateGutter() {
 
 function updateStatusBar() {
     const t = locales[state.lang];
-    
     const textBeforeCaret = editor.value.substring(0, editor.selectionStart);
     const lines = textBeforeCaret.split('\n');
     const currentLine = lines.length;
     const currentCol = lines[lines.length - 1].length + 1;
-    
     document.getElementById('status-caret').textContent = t.statusCaret
         .replace('{line}', currentLine)
         .replace('{col}', currentCol);
-        
     const charCount = editor.value.length;
     const words = editor.value.trim() ? editor.value.trim().split(/\s+/).length : 0;
-    
     document.getElementById('status-stats').textContent = t.statusStats
         .replace('{chars}', charCount)
         .replace('{words}', words);
-        
     document.getElementById('status-zoom').textContent = `${state.zoom}%`;
-    document.getElementById('status-direction').textContent = state.lang === 'fa' ? t.statusDirection : 'LTR';
+    document.getElementById('status-direction').textContent = state.dir === 'rtl' ? t.statusDirection : 'LTR';
 }
 
 let historyTimer = null;
 function handleTyping() {
     const tab = state.tabs.find(t => t.id === state.activeTabId);
     if (!tab) return;
-
     const currentText = editor.value;
     if (currentText !== tab.content) {
         tab.content = currentText;
@@ -488,7 +494,6 @@ function handleTyping() {
         renderTabs();
         updateGutter();
         updateStatusBar();
-
         clearTimeout(historyTimer);
         historyTimer = setTimeout(() => {
             if (tab.history[tab.historyIndex] !== currentText) {
@@ -525,7 +530,6 @@ function openModal(id) {
     const modal = document.getElementById(id);
     if (modal) {
         modal.style.display = 'flex';
-        
         if (id === 'modal-settings') {
             document.getElementById('setting-fontsize').value = state.fontSize;
             document.getElementById('setting-lineheight').value = state.lineHeight;
@@ -549,22 +553,18 @@ function performSearch() {
         resultsCount.textContent = '0/0';
         return;
     }
-
     const text = editor.value;
     const matchCase = matchCaseChk.checked;
     const findStr = matchCase ? query : query.toLowerCase();
     const targetStr = matchCase ? text : text.toLowerCase();
-
     const matches = [];
     let idx = targetStr.indexOf(findStr);
     while (idx !== -1) {
         matches.push({ start: idx, end: idx + findStr.length });
         idx = targetStr.indexOf(findStr, idx + findStr.length || idx + 1);
     }
-
     searchState.matches = matches;
     searchState.query = query;
-
     if (matches.length > 0) {
         if (searchState.currentIndex < 0 || searchState.currentIndex >= matches.length) {
             searchState.currentIndex = 0;
@@ -573,7 +573,6 @@ function performSearch() {
     } else {
         searchState.currentIndex = -1;
     }
-    
     updateSearchUI();
 }
 
@@ -611,7 +610,6 @@ function replaceCurrent() {
     const current = searchState.matches[searchState.currentIndex];
     const repl = replaceInput.value;
     const text = editor.value;
-
     editor.value = text.substring(0, current.start) + repl + text.substring(current.end);
     handleTyping();
     performSearch();
@@ -623,7 +621,6 @@ function replaceAll() {
     const repl = replaceInput.value;
     const matchCase = matchCaseChk.checked;
     const text = editor.value;
-
     let updatedText = "";
     if (matchCase) {
         updatedText = text.replaceAll(query, repl);
@@ -632,7 +629,6 @@ function replaceAll() {
         const regex = new RegExp(escaped, 'gi');
         updatedText = text.replace(regex, repl);
     }
-
     editor.value = updatedText;
     handleTyping();
     performSearch();
@@ -657,7 +653,6 @@ function triggerOpenFile() {
 function triggerSave(saveAs = false) {
     const tab = state.tabs.find(t => t.id === state.activeTabId);
     if (!tab) return;
-
     if (saveAs || !tab.path) {
         const promptTitle = state.lang === 'fa' ? 'نام فایل برای ذخیره سازی را وارد کنید:' : 'Enter file name to save:';
         const filename = prompt(promptTitle, tab.path || tab.title + '.txt');
@@ -665,7 +660,6 @@ function triggerSave(saveAs = false) {
         tab.title = filename;
         tab.path = filename;
     }
-
     const blob = new Blob([editor.value], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -675,36 +669,64 @@ function triggerSave(saveAs = false) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-
     tab.isDirty = false;
     renderTabs();
 }
 
+// Auto-save functions
+function startAutoSave() {
+    if (autoSaveTimer) clearInterval(autoSaveTimer);
+    autoSaveTimer = setInterval(() => {
+        const tab = state.tabs.find(t => t.id === state.activeTabId);
+        if (tab) {
+            localStorage.setItem('notepad_autosave_' + tab.id, editor.value);
+        }
+    }, 5000);
+}
+
+function loadAutoSavedContent() {
+    // در createNewTab بارگذاری می‌شود
+}
+
+// Drag and Drop
+function setupDragDrop() {
+    editor.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+    });
+    editor.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            const file = files[0];
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                createNewTab(file.name, evt.target.result, file.name);
+            };
+            reader.readAsText(file);
+        }
+    });
+}
+
 function registerEvents() {
+    setupDragDrop();
+
     editor.addEventListener('scroll', () => {
         gutter.scrollTop = editor.scrollTop;
     });
-
-    editor.addEventListener('input', () => {
-        handleTyping();
-    });
-
+    editor.addEventListener('input', handleTyping);
     editor.addEventListener('keyup', updateStatusBar);
     editor.addEventListener('click', updateStatusBar);
     editor.addEventListener('focus', updateStatusBar);
 
     document.getElementById('add-tab').addEventListener('click', () => createNewTab());
 
-    // عملکرد اصلاح‌شده و کاملاً بدون باگ منو دسکتاپ
     let activeDropdownRoot = null;
     document.querySelectorAll('.menubar .menu-item').forEach(menuRoot => {
         const dropdown = menuRoot.querySelector('.dropdown');
-        if (!dropdown) return; // چشم‌پوشی از آیتم‌هایی مثل تنظیمات که دراپ‌دان ندارند
-
+        if (!dropdown) return;
         menuRoot.addEventListener('click', (e) => {
-            // اگر کاربر دقیقا روی گزینه‌های درونی کلیک کرد، این متد را متوقف کن تا هندلر گزینه اجرا شود
             if (dropdown.contains(e.target)) return;
-            
             e.stopPropagation();
             const isActive = menuRoot.classList.contains('active');
             closeAllMenus();
@@ -715,7 +737,6 @@ function registerEvents() {
                 activeDropdownRoot = null;
             }
         });
-
         menuRoot.addEventListener('mouseenter', () => {
             if (activeDropdownRoot) {
                 closeAllMenus();
@@ -724,7 +745,6 @@ function registerEvents() {
             }
         });
     });
-
     document.addEventListener('click', () => {
         closeAllMenus();
         activeDropdownRoot = null;
@@ -734,35 +754,29 @@ function registerEvents() {
         document.querySelectorAll('.menubar .menu-item').forEach(m => m.classList.remove('active'));
     }
 
-    // انتساب کارهای دکمه‌های منوبار
     document.getElementById('menu-new').addEventListener('click', () => createNewTab());
     document.getElementById('menu-open').addEventListener('click', triggerOpenFile);
     document.getElementById('menu-save').addEventListener('click', () => triggerSave(false));
     document.getElementById('menu-save-as').addEventListener('click', () => triggerSave(true));
     document.getElementById('menu-print').addEventListener('click', () => window.print());
     document.getElementById('menu-close').addEventListener('click', () => closeTab(state.activeTabId));
-
     document.getElementById('menu-undo').addEventListener('click', triggerUndo);
     document.getElementById('menu-redo').addEventListener('click', triggerRedo);
-    
     document.getElementById('menu-find').addEventListener('click', () => {
         replaceRow.style.display = 'none';
         searchPanel.style.display = 'flex';
         findInput.focus();
     });
-    
     document.getElementById('menu-replace').addEventListener('click', () => {
         replaceRow.style.display = 'flex';
         searchPanel.style.display = 'flex';
         findInput.focus();
     });
-
     document.getElementById('menu-goto').addEventListener('click', () => openModal('modal-goto'));
     document.getElementById('menu-select-all').addEventListener('click', () => {
         editor.focus();
         editor.select();
     });
-
     document.getElementById('menu-insert-date').addEventListener('click', () => {
         const dateStr = new Date().toLocaleString(state.lang === 'fa' ? 'fa-IR' : 'en-US');
         const start = editor.selectionStart;
@@ -771,52 +785,46 @@ function registerEvents() {
         editor.setSelectionRange(start + dateStr.length, start + dateStr.length);
         handleTyping();
     });
-
+    document.getElementById('menu-rename').addEventListener('click', renameTab);
     document.getElementById('menu-zoom-in').addEventListener('click', () => {
         state.zoom = Math.min(300, state.zoom + 10);
         applySettingsStyles();
         updateStatusBar();
     });
-
     document.getElementById('menu-zoom-out').addEventListener('click', () => {
         state.zoom = Math.max(50, state.zoom - 10);
         applySettingsStyles();
         updateStatusBar();
     });
-
     document.getElementById('menu-zoom-reset').addEventListener('click', () => {
         state.zoom = 100;
         applySettingsStyles();
         updateStatusBar();
     });
-
     document.getElementById('menu-word-wrap').addEventListener('click', () => {
         state.wordWrap = !state.wordWrap;
         applySettingsStyles();
         updateToggleMenuTexts();
         saveSettings();
     });
-
     document.getElementById('menu-toggle-lines').addEventListener('click', () => {
         state.showLines = !state.showLines;
         applySettingsStyles();
         updateToggleMenuTexts();
         saveSettings();
     });
-
     document.getElementById('menu-toggle-status').addEventListener('click', () => {
         state.showStatus = !state.showStatus;
         applySettingsStyles();
         updateToggleMenuTexts();
         saveSettings();
     });
-
     document.getElementById('menu-theme-toggle').addEventListener('click', () => {
         state.theme = state.theme === 'dark' ? 'light' : 'dark';
         applyTheme();
         saveSettings();
     });
-
+    document.getElementById('menu-toggle-dir').addEventListener('click', toggleDirection);
     document.getElementById('menu-settings-trigger').addEventListener('click', () => openModal('modal-settings'));
     document.getElementById('menu-about').addEventListener('click', () => openModal('modal-about'));
 
@@ -830,13 +838,10 @@ function registerEvents() {
     document.getElementById('save-settings-btn').addEventListener('click', () => {
         state.fontSize = parseInt(document.getElementById('setting-fontsize').value) || 14;
         state.lineHeight = parseFloat(document.getElementById('setting-lineheight').value) || 1.5;
-        
         const nextLang = document.getElementById('setting-lang').value;
         const fontChoice = document.getElementById('setting-font').value;
-        
         state.lang = nextLang;
         state.fontFamily = fontChoice;
-
         applyLocalization(nextLang);
         applySettingsStyles();
         saveSettings();
@@ -847,16 +852,13 @@ function registerEvents() {
         const lineNum = parseInt(document.getElementById('goto-line-input').value) || 1;
         const lines = editor.value.split('\n');
         const target = Math.min(lines.length, Math.max(1, lineNum));
-        
         let targetIdx = 0;
         for (let i = 0; i < target - 1; i++) {
             targetIdx += lines[i].length + 1;
         }
-
         editor.focus();
         editor.setSelectionRange(targetIdx, targetIdx);
         closeModal('modal-goto');
-        
         const fontSizeVal = state.fontSize * (state.zoom / 100);
         editor.scrollTop = (target - 1) * (fontSizeVal * state.lineHeight);
     });
@@ -881,73 +883,33 @@ function registerEvents() {
         if (e.ctrlKey) {
             const key = e.key.toLowerCase();
             switch (key) {
-                case 'n':
-                    e.preventDefault();
-                    createNewTab();
-                    break;
-                case 'o':
-                    e.preventDefault();
-                    triggerOpenFile();
-                    break;
-                case 's':
-                    e.preventDefault();
-                    triggerSave(e.shiftKey);
-                    break;
-                case 'w':
-                    e.preventDefault();
-                    closeTab(state.activeTabId);
-                    break;
-                case 'p':
-                    e.preventDefault();
-                    window.print();
-                    break;
-                case 'z':
-                    e.preventDefault();
-                    triggerUndo();
-                    break;
-                case 'y':
-                    e.preventDefault();
-                    triggerRedo();
-                    break;
-                case 'f':
-                    e.preventDefault();
-                    replaceRow.style.display = 'none';
-                    searchPanel.style.display = 'flex';
-                    findInput.focus();
-                    break;
-                case 'h':
-                    e.preventDefault();
-                    replaceRow.style.display = 'flex';
-                    searchPanel.style.display = 'flex';
-                    findInput.focus();
-                    break;
-                case 'g':
-                    e.preventDefault();
-                    openModal('modal-goto');
-                    break;
-                case '0':
-                    e.preventDefault();
-                    state.zoom = 100;
-                    applySettingsStyles();
-                    updateStatusBar();
-                    break;
+                case 'n': e.preventDefault(); createNewTab(); break;
+                case 'o': e.preventDefault(); triggerOpenFile(); break;
+                case 's': e.preventDefault(); triggerSave(e.shiftKey); break;
+                case 'w': e.preventDefault(); closeTab(state.activeTabId); break;
+                case 'p': e.preventDefault(); window.print(); break;
+                case 'z': e.preventDefault(); triggerUndo(); break;
+                case 'y': e.preventDefault(); triggerRedo(); break;
+                case 'f': e.preventDefault(); replaceRow.style.display = 'none'; searchPanel.style.display = 'flex'; findInput.focus(); break;
+                case 'h': e.preventDefault(); replaceRow.style.display = 'flex'; searchPanel.style.display = 'flex'; findInput.focus(); break;
+                case 'g': e.preventDefault(); openModal('modal-goto'); break;
+                case '0': e.preventDefault(); state.zoom = 100; applySettingsStyles(); updateStatusBar(); break;
                 case '=':
-                case '+':
-                    e.preventDefault();
-                    state.zoom = Math.min(300, state.zoom + 10);
-                    applySettingsStyles();
-                    updateStatusBar();
-                    break;
-                case '-':
-                    e.preventDefault();
-                    state.zoom = Math.max(50, state.zoom - 10);
-                    applySettingsStyles();
-                    updateStatusBar();
+                case '+': e.preventDefault(); state.zoom = Math.min(300, state.zoom + 10); applySettingsStyles(); updateStatusBar(); break;
+                case '-': e.preventDefault(); state.zoom = Math.max(50, state.zoom - 10); applySettingsStyles(); updateStatusBar(); break;
+                case 'r':
+                    if (e.shiftKey) {
+                        e.preventDefault();
+                        toggleDirection();
+                    }
                     break;
             }
         } else if (e.key === 'F5') {
             e.preventDefault();
             document.getElementById('menu-insert-date').click();
+        } else if (e.key === 'F2') {
+            e.preventDefault();
+            renameTab();
         }
     });
 }
