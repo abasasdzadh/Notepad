@@ -1,6 +1,5 @@
 // START OF FILE Notepad-main/app.js
 
-// دیکشنری بومی‌سازی شده (فارسی و انگلیسی)
 const locales = {
     fa: {
         dir: 'rtl',
@@ -130,7 +129,6 @@ const locales = {
     }
 };
 
-// وضعیت پیش‌فرض برنامه
 let state = {
     tabs: [],
     activeTabId: null,
@@ -145,7 +143,6 @@ let state = {
     fontFamily: "'Vazir', sans-serif"
 };
 
-// دریافت گره‌های DOM
 const editor = document.getElementById('editor');
 const gutter = document.getElementById('gutter');
 const tabContainer = document.getElementById('tab-container');
@@ -157,21 +154,18 @@ const replaceRow = document.getElementById('replace-row');
 const matchCaseChk = document.getElementById('match-case-chk');
 const resultsCount = document.getElementById('search-results-count');
 
-// متغیر موقت برای جستجو
 let searchState = {
     matches: [],
     currentIndex: -1,
     query: ''
 };
 
-// لود تنظیمات محلی و راه‌اندازی اولیه
 function init() {
     loadSettings();
     applyTheme();
     applySettingsStyles();
     applyLocalization(state.lang);
     
-    // اگر تبی وجود نداشت یک تب خالی بساز
     if (state.tabs.length === 0) {
         createNewTab();
     } else {
@@ -182,7 +176,6 @@ function init() {
     registerEvents();
 }
 
-// ذخیره و لود تنظیمات از localStorage
 function saveSettings() {
     localStorage.setItem('notepad_pwa_settings', JSON.stringify({
         zoom: state.zoom,
@@ -209,30 +202,36 @@ function loadSettings() {
     }
 }
 
-// اعمال بومی‌سازی زبان
 function applyLocalization(lang) {
     const t = locales[lang];
     if (!t) return;
 
-    // اعمال جهت و کلاس زبان به body
     document.body.setAttribute('dir', t.dir);
     document.body.setAttribute('lang', t.lang);
     
-    // اصلاح فونت‌ها بر اساس زبان انتخابی
     if (lang === 'fa') {
         state.fontFamily = "'Vazir', sans-serif";
     } else if (state.fontFamily === "'Vazir', sans-serif") {
         state.fontFamily = "Consolas, monospace";
     }
     
-    // بروزرسانی عناوین منوها
-    document.getElementById('root-menu-file').childNodes[0].textContent = t.menuFile + ' ';
-    document.getElementById('root-menu-edit').childNodes[0].textContent = t.menuEdit + ' ';
-    document.getElementById('root-menu-view').childNodes[0].textContent = t.menuView + ' ';
-    document.getElementById('menu-settings-trigger').textContent = t.menuSettings;
-    document.getElementById('root-menu-help').childNodes[0].textContent = t.menuHelp + ' ';
+    // بروزرسانی امن عنوان منوهای ریشه بر اساس ساختار جدید
+    const fileTitle = document.querySelector('#root-menu-file .menu-title');
+    if (fileTitle) fileTitle.textContent = t.menuFile;
 
-    // بروزرسانی گزینه‌های دراپ‌دان
+    const editTitle = document.querySelector('#root-menu-edit .menu-title');
+    if (editTitle) editTitle.textContent = t.menuEdit;
+
+    const viewTitle = document.querySelector('#root-menu-view .menu-title');
+    if (viewTitle) viewTitle.textContent = t.menuView;
+
+    const helpTitle = document.querySelector('#root-menu-help .menu-title');
+    if (helpTitle) helpTitle.textContent = t.menuHelp;
+
+    const menuSettingsTrigger = document.getElementById('menu-settings-trigger');
+    if (menuSettingsTrigger) menuSettingsTrigger.textContent = t.menuSettings;
+
+    // دراپ‌دان‌ها
     updateMenuShortcut('menu-new', t.menuNew, 'Ctrl+N');
     updateMenuShortcut('menu-open', t.menuOpen, 'Ctrl+O');
     updateMenuShortcut('menu-save', t.menuSave, 'Ctrl+S');
@@ -254,17 +253,15 @@ function applyLocalization(lang) {
 
     document.getElementById('menu-about').textContent = t.menuAbout;
 
-    // بروزرسانی تاگل‌ها در منوی View
     updateToggleMenuTexts();
 
-    // فیلدهای جستجو
     findInput.placeholder = t.findPlaceholder;
     replaceInput.placeholder = t.replacePlaceholder;
     document.getElementById('replace-btn').textContent = t.findBtnReplace;
     document.getElementById('replace-all-btn').textContent = t.findBtnReplaceAll;
     document.getElementById('match-case-label').innerHTML = `<input type="checkbox" id="match-case-chk" ${matchCaseChk.checked ? 'checked' : ''}> ` + t.matchCaseLabel;
 
-    // کادرهای محاوره‌ای (Modals)
+    // مودال‌ها
     const aboutModal = document.getElementById('modal-about');
     aboutModal.querySelector('.dialog-header').textContent = t.modalAboutTitle;
     const aboutBodyPs = aboutModal.querySelectorAll('.dialog-body p');
@@ -289,13 +286,10 @@ function applyLocalization(lang) {
     document.getElementById('goto-confirm-btn').textContent = t.modalGotoBtn;
     gotoModal.querySelector('.modal-close-btn').textContent = t.modalCancel;
 
-    // پر کردن لیست فونت‌ها بر اساس زبان انتخابی
     populateFontOptions(lang);
 
-    // ادیتور جهت و هولدر
     editor.placeholder = lang === 'fa' ? 'تایپ کنید...' : 'Type here...';
 
-    // بروزرسانی نوار وضعیت
     updateStatusBar();
 }
 
@@ -313,7 +307,6 @@ function updateToggleMenuTexts() {
     document.getElementById('menu-toggle-status').textContent = (state.showStatus ? '✓ ' : '') + t.menuToggleStatus;
 }
 
-// پر کردن لیست فونت‌ها در تنظیمات
 function populateFontOptions(lang) {
     const fontSelect = document.getElementById('setting-font');
     if (!fontSelect) return;
@@ -340,12 +333,10 @@ function populateFontOptions(lang) {
     fontSelect.value = state.fontFamily;
 }
 
-// تغییر تم برنامه
 function applyTheme() {
     document.body.setAttribute('data-theme', state.theme);
 }
 
-// اعمال استایل‌های اصلی ادیتور بر اساس وضعیت فعلی
 function applySettingsStyles() {
     const dynamicSize = state.fontSize * (state.zoom / 100);
     document.documentElement.style.setProperty('--font-size', dynamicSize + 'px');
@@ -364,10 +355,9 @@ function applySettingsStyles() {
     updateGutter();
 }
 
-// ایجاد یک تب جدید
 function createNewTab(title = null, content = '', path = null) {
-    const t = locales[state.lang];
-    const newId = Date.now().toString();
+    // ایجاد آیدی منحصر به فرد مطمئن تر برای جلوگیری از هم‌پوشانی آیدی تب‌ها
+    const newId = Date.now().toString() + Math.random().toString(36).substring(2, 7);
     const newTab = {
         id: newId,
         title: title || (state.lang === 'fa' ? 'سند جدید' : 'Untitled'),
@@ -382,7 +372,6 @@ function createNewTab(title = null, content = '', path = null) {
     selectTab(newId);
 }
 
-// رندر کلید تب‌ها
 function renderTabs() {
     tabContainer.innerHTML = '';
     state.tabs.forEach(tab => {
@@ -408,9 +397,7 @@ function renderTabs() {
     });
 }
 
-// انتخاب یک تب مشخص
 function selectTab(id) {
-    // ذخیره وضعیت تب قبلی قبل از تغییر
     if (state.activeTabId) {
         const currentTab = state.tabs.find(t => t.id === state.activeTabId);
         if (currentTab) {
@@ -430,7 +417,6 @@ function selectTab(id) {
     editor.focus();
 }
 
-// بستن یک تب
 function closeTab(id) {
     const tabIndex = state.tabs.findIndex(t => t.id === id);
     if (tabIndex === -1) return;
@@ -455,7 +441,6 @@ function closeTab(id) {
     }
 }
 
-// هماهنگ‌سازی و لود نوار شماره خطوط (Gutter)
 function updateGutter() {
     if (!state.showLines) return;
     const lines = editor.value.split('\n');
@@ -468,11 +453,9 @@ function updateGutter() {
     gutter.scrollTop = editor.scrollTop;
 }
 
-// بروزرسانی نوار وضعیت پایین صفحه
 function updateStatusBar() {
     const t = locales[state.lang];
     
-    // موقعیت مکان‌نما
     const textBeforeCaret = editor.value.substring(0, editor.selectionStart);
     const lines = textBeforeCaret.split('\n');
     const currentLine = lines.length;
@@ -482,7 +465,6 @@ function updateStatusBar() {
         .replace('{line}', currentLine)
         .replace('{col}', currentCol);
         
-    // مشخصات متن
     const charCount = editor.value.length;
     const words = editor.value.trim() ? editor.value.trim().split(/\s+/).length : 0;
     
@@ -490,14 +472,10 @@ function updateStatusBar() {
         .replace('{chars}', charCount)
         .replace('{words}', words);
         
-    // بزرگنمایی
     document.getElementById('status-zoom').textContent = `${state.zoom}%`;
-    
-    // جهت صفحه
     document.getElementById('status-direction').textContent = state.lang === 'fa' ? t.statusDirection : 'LTR';
 }
 
-// سیستم پیشرفته Undo/Redo مستقل از مرورگر
 let historyTimer = null;
 function handleTyping() {
     const tab = state.tabs.find(t => t.id === state.activeTabId);
@@ -511,13 +489,12 @@ function handleTyping() {
         updateGutter();
         updateStatusBar();
 
-        // دیبانس تغییرات تاریخچه (تایپ چند کاراکتر همزمان فقط یک گام ایجاد می‌کند)
         clearTimeout(historyTimer);
         historyTimer = setTimeout(() => {
             if (tab.history[tab.historyIndex] !== currentText) {
                 tab.history = tab.history.slice(0, tab.historyIndex + 1);
                 tab.history.push(currentText);
-                if (tab.history.length > 50) tab.history.shift(); // محدودیت به ۵۰ گام برای بهینه‌سازی رم
+                if (tab.history.length > 50) tab.history.shift();
                 tab.historyIndex = tab.history.length - 1;
             }
         }, 500);
@@ -544,13 +521,11 @@ function triggerRedo() {
     updateStatusBar();
 }
 
-// مودال‌های باز شونده
 function openModal(id) {
     const modal = document.getElementById(id);
     if (modal) {
         modal.style.display = 'flex';
         
-        // همگام‌سازی موقت مقادیر مودال با وضعیت
         if (id === 'modal-settings') {
             document.getElementById('setting-fontsize').value = state.fontSize;
             document.getElementById('setting-lineheight').value = state.lineHeight;
@@ -567,7 +542,6 @@ function closeModal(id) {
     }
 }
 
-// پیاده‌سازی سیستم جستجو و جایگزینی
 function performSearch() {
     const query = findInput.value;
     if (!query) {
@@ -664,7 +638,6 @@ function replaceAll() {
     performSearch();
 }
 
-// باز کردن و ذخیره سنتی فایل‌ها
 function triggerOpenFile() {
     const input = document.createElement('input');
     input.type = 'file';
@@ -707,14 +680,11 @@ function triggerSave(saveAs = false) {
     renderTabs();
 }
 
-// ثبت کنندگان رویدادها (Event Listeners)
 function registerEvents() {
-    // هماهنگی اسکرول نوار خطوط و ویرایشگر
     editor.addEventListener('scroll', () => {
         gutter.scrollTop = editor.scrollTop;
     });
 
-    // رویدادهای مربوط به نوشتن
     editor.addEventListener('input', () => {
         handleTyping();
     });
@@ -723,20 +693,26 @@ function registerEvents() {
     editor.addEventListener('click', updateStatusBar);
     editor.addEventListener('focus', updateStatusBar);
 
-    // افزودن تب جدید
     document.getElementById('add-tab').addEventListener('click', () => createNewTab());
 
-    // عملکرد دراپ‌دان منوبار به صورت استاندارد دسکتاپ
+    // عملکرد اصلاح‌شده و کاملاً بدون باگ منو دسکتاپ
     let activeDropdownRoot = null;
     document.querySelectorAll('.menubar .menu-item').forEach(menuRoot => {
+        const dropdown = menuRoot.querySelector('.dropdown');
+        if (!dropdown) return; // چشم‌پوشی از آیتم‌هایی مثل تنظیمات که دراپ‌دان ندارند
+
         menuRoot.addEventListener('click', (e) => {
-            if (e.target !== menuRoot && !e.target.id.includes('trigger')) return;
+            // اگر کاربر دقیقا روی گزینه‌های درونی کلیک کرد، این متد را متوقف کن تا هندلر گزینه اجرا شود
+            if (dropdown.contains(e.target)) return;
+            
             e.stopPropagation();
             const isActive = menuRoot.classList.contains('active');
             closeAllMenus();
             if (!isActive) {
                 menuRoot.classList.add('active');
                 activeDropdownRoot = menuRoot;
+            } else {
+                activeDropdownRoot = null;
             }
         });
 
@@ -758,7 +734,7 @@ function registerEvents() {
         document.querySelectorAll('.menubar .menu-item').forEach(m => m.classList.remove('active'));
     }
 
-    // هندلر کلیدهای میانبر منوبار
+    // انتساب کارهای دکمه‌های منوبار
     document.getElementById('menu-new').addEventListener('click', () => createNewTab());
     document.getElementById('menu-open').addEventListener('click', triggerOpenFile);
     document.getElementById('menu-save').addEventListener('click', () => triggerSave(false));
@@ -844,7 +820,6 @@ function registerEvents() {
     document.getElementById('menu-settings-trigger').addEventListener('click', () => openModal('modal-settings'));
     document.getElementById('menu-about').addEventListener('click', () => openModal('modal-about'));
 
-    // کلوز تمام دکمه‌های کنسل/لغو کادرها
     document.querySelectorAll('.modal-close-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const modal = e.target.closest('.modal');
@@ -852,7 +827,6 @@ function registerEvents() {
         });
     });
 
-    // کادرهای ذخیره تنظیمات و کارها
     document.getElementById('save-settings-btn').addEventListener('click', () => {
         state.fontSize = parseInt(document.getElementById('setting-fontsize').value) || 14;
         state.lineHeight = parseFloat(document.getElementById('setting-lineheight').value) || 1.5;
@@ -883,17 +857,14 @@ function registerEvents() {
         editor.setSelectionRange(targetIdx, targetIdx);
         closeModal('modal-goto');
         
-        // جابجایی اسکرول
         const fontSizeVal = state.fontSize * (state.zoom / 100);
         editor.scrollTop = (target - 1) * (fontSizeVal * state.lineHeight);
     });
 
-    // تنظیمات رویداد زبان
     document.getElementById('setting-lang').addEventListener('change', (e) => {
         populateFontOptions(e.target.value);
     });
 
-    // فیلدهای پنل جستجو و جایگزینی
     findInput.addEventListener('input', performSearch);
     matchCaseChk.addEventListener('change', performSearch);
     document.getElementById('find-next-btn').addEventListener('click', findNext);
@@ -906,9 +877,7 @@ function registerEvents() {
         editor.focus();
     });
 
-    // پشتیبانی کامل از کلیدهای میانبر استاندارد مرورگر (Hotkey bindings)
     window.addEventListener('keydown', (e) => {
-        // جلوگیری از تداخل کلیدهای پیش فرض مرورگر
         if (e.ctrlKey) {
             const key = e.key.toLowerCase();
             switch (key) {
@@ -983,5 +952,4 @@ function registerEvents() {
     });
 }
 
-// اجرای برنامه
 init();
