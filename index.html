@@ -524,57 +524,70 @@
     </div>
 
     <div class="menubar" id="menubar">
-        <div class="menu-item" id="root-menu-file">
-            <span class="menu-title">فایل</span>
-            <div class="dropdown">
-                <div class="dropdown-item" id="menu-new">جدید <span class="shortcut-hint">Ctrl+N</span></div>
-                <div class="dropdown-item" id="menu-open">باز کردن... <span class="shortcut-hint">Ctrl+O</span></div>
-                <div class="dropdown-item" id="menu-save">ذخیره <span class="shortcut-hint">Ctrl+S</span></div>
-                <div class="dropdown-item" id="menu-save-as">ذخیره به عنوان... <span class="shortcut-hint">Ctrl+Shift+S</span></div>
-                <div class="dropdown-divider"></div>
-                <div class="dropdown-item" id="menu-print">چاپ <span class="shortcut-hint">Ctrl+P</span></div>
-                <div class="dropdown-item" id="menu-close">بستن تب <span class="shortcut-hint">Ctrl+W</span></div>
-            </div>
-        </div>
-        <div class="menu-item" id="root-menu-edit">
-            <span class="menu-title">ویرایش</span>
-            <div class="dropdown">
-                <div class="dropdown-item" id="menu-undo">واگرد <span class="shortcut-hint">Ctrl+Z</span></div>
-                <div class="dropdown-item" id="menu-redo">مجدد <span class="shortcut-hint">Ctrl+Y</span></div>
-                <div class="dropdown-divider"></div>
-                <div class="dropdown-item" id="menu-find">جستجو <span class="shortcut-hint">Ctrl+F</span></div>
-                <div class="dropdown-item" id="menu-replace">جایگزینی <span class="shortcut-hint">Ctrl+H</span></div>
-                <div class="dropdown-item" id="menu-goto">برو به خط... <span class="shortcut-hint">Ctrl+G</span></div>
-                <div class="dropdown-divider"></div>
-                <div class="dropdown-item" id="menu-select-all">انتخاب همه <span class="shortcut-hint">Ctrl+A</span></div>
-                <div class="dropdown-item" id="menu-insert-date">درج تاریخ/ساعت <span class="shortcut-hint">F5</span></div>
-                <div class="dropdown-divider"></div>
-                <div class="dropdown-item" id="menu-rename">تغییر نام فایل <span class="shortcut-hint">F2</span></div>
-            </div>
-        </div>
-        <div class="menu-item" id="root-menu-view">
-            <span class="menu-title">نمایش</span>
-            <div class="dropdown">
-                <div class="dropdown-item" id="menu-zoom-in">بزرگنمایی <span class="shortcut-hint">Ctrl++</span></div>
-                <div class="dropdown-item" id="menu-zoom-out">کوچکنمایی <span class="shortcut-hint">Ctrl+-</span></div>
-                <div class="dropdown-item" id="menu-zoom-reset">تنظیم پیش‌فرض <span class="shortcut-hint">Ctrl+0</span></div>
-                <div class="dropdown-divider"></div>
-                <div class="dropdown-item" id="menu-word-wrap">شکستن خودکار خطوط</div>
-                <div class="dropdown-item" id="menu-toggle-lines">نمایش شماره خطوط</div>
-                <div class="dropdown-item" id="menu-toggle-status">نمایش نوار وضعیت</div>
-                <div class="dropdown-divider"></div>
-                <div class="dropdown-item" id="menu-theme-toggle">تغییر تم (تاریک/روشن)</div>
-                <div class="dropdown-item" id="menu-toggle-dir">تغییر جهت نوشتار <span class="shortcut-hint">Ctrl+Shift+R</span></div>
-            </div>
-        </div>
-        <div class="menu-item" id="menu-settings-trigger">تنظیمات</div>
-        <div class="menu-item" id="root-menu-help">
-            <span class="menu-title">راهنما</span>
-            <div class="dropdown">
-                <div class="dropdown-item" id="menu-about">درباره Notepad</div>
-            </div>
+    <div class="menu-item" id="root-menu-file">
+        <span class="menu-title">فایل</span>
+        <div class="dropdown">
+            <div class="dropdown-item" id="menu-new">جدید <span class="shortcut-hint">Ctrl+N</span></div>
+            <div class="dropdown-item" id="menu-open">باز کردن... <span class="shortcut-hint">Ctrl+O</span></div>
+            <div class="dropdown-item" id="menu-save">ذخیره <span class="shortcut-hint">Ctrl+S</span></div>
+            <div class="dropdown-item" id="menu-save-as">ذخیره به عنوان... <span class="shortcut-hint">Ctrl+Shift+S</span></div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item" id="menu-print">چاپ <span class="shortcut-hint">Ctrl+P</span></div>
+            <div class="dropdown-item" id="menu-close">بستن تب <span class="shortcut-hint">Ctrl+W</span></div>
         </div>
     </div>
+    <div class="menu-item" id="root-menu-edit">
+        <span class="menu-title">ویرایش</span>
+        <div class="dropdown">
+            <div class="dropdown-item" id="menu-undo">واگرد <span class="shortcut-hint">Ctrl+Z</span></div>
+            <div class="dropdown-item" id="menu-redo">مجدد <span class="shortcut-hint">Ctrl+Y</span></div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item" id="menu-find">جستجو <span class="shortcut-hint">Ctrl+F</span></div>
+            <div class="dropdown-item" id="menu-replace">جایگزینی <span class="shortcut-hint">Ctrl+H</span></div>
+            <div class="dropdown-item" id="menu-goto">برو به خط... <span class="shortcut-hint">Ctrl+G</span></div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item" id="menu-select-all">انتخاب همه <span class="shortcut-hint">Ctrl+A</span></div>
+            <div class="dropdown-item" id="menu-insert-date">درج تاریخ/ساعت <span class="shortcut-hint">F5</span></div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item" id="menu-rename">تغییر نام فایل <span class="shortcut-hint">F2</span></div>
+        </div>
+    </div>
+    <div class="menu-item" id="root-menu-view">
+        <span class="menu-title">نمایش</span>
+        <div class="dropdown">
+            <div class="dropdown-item" id="menu-zoom-in">بزرگنمایی <span class="shortcut-hint">Ctrl++</span></div>
+            <div class="dropdown-item" id="menu-zoom-out">کوچکنمایی <span class="shortcut-hint">Ctrl+-</span></div>
+            <div class="dropdown-item" id="menu-zoom-reset">تنظیم پیش‌فرض <span class="shortcut-hint">Ctrl+0</span></div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item" id="menu-word-wrap">شکستن خودکار خطوط</div>
+            <div class="dropdown-item" id="menu-toggle-lines">نمایش شماره خطوط</div>
+            <div class="dropdown-item" id="menu-toggle-status">نمایش نوار وضعیت</div>
+        </div>
+    </div>
+    <div class="menu-item" id="root-menu-settings">
+        <span class="menu-title">تنظیمات</span>
+        <div class="dropdown" id="settings-dropdown">
+            <div class="dropdown-item" data-setting="font">فونت: <span id="settings-font-display">Vazir</span></div>
+            <div class="dropdown-item" data-setting="fontsize">اندازه فونت: <span id="settings-fontsize-display">۱۴</span></div>
+            <div class="dropdown-item" data-setting="lineheight">فاصله خطوط: <span id="settings-lineheight-display">۱.۵</span></div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item" data-setting="lang">زبان: <span id="settings-lang-display">فارسی</span></div>
+            <div class="dropdown-item" data-setting="theme">تم: <span id="settings-theme-display">تاریک</span></div>
+        </div>
+    </div>
+    <div class="menu-item" id="theme-toggle-btn" style="margin-right: auto;">
+        <span id="theme-icon">🌙</span>
+    </div>
+    <div class="menu-item" id="lang-toggle-btn">
+        <span id="lang-label">فا</span>
+    </div>
+    <div class="menu-item" id="root-menu-help">
+        <span class="menu-title">راهنما</span>
+        <div class="dropdown">
+            <div class="dropdown-item" id="menu-about">درباره Notepad</div>
+        </div>
+    </div>
+</div>
 
     <div class="workspace">
         <div class="search-panel" id="search-panel">
