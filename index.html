@@ -61,7 +61,7 @@
             transition: background-color 0.25s, color 0.25s;
         }
 
-        /* استایل سفارشی و مدرن اسکرول‌بارها */
+        /* استایل سفارشی اسکرول‌بارها */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -99,7 +99,7 @@
             gap: 6px;
             overflow-x: auto;
             flex-grow: 1;
-            scrollbar-width: none; /* Hide scrollbar for clean UI */
+            scrollbar-width: none;
         }
         .tab-container::-webkit-scrollbar {
             display: none;
@@ -176,7 +176,7 @@
             background-color: var(--bg-hover);
         }
 
-        /* Menu Bar (مقاوم در برابر Overflow دستگاه‌های کوچک) */
+        /* Menu Bar */
         .menubar {
             display: flex;
             background-color: var(--bg-menu);
@@ -280,12 +280,16 @@
             background-color: var(--bg-app);
             text-align: center;
             padding-top: 10px;
-            font-size: var(--font-size);
-            line-height: var(--line-height);
             color: #858585;
             overflow: hidden;
             user-select: none;
             transition: width 0.2s;
+        }
+
+        .editor, .gutter {
+            font-family: var(--font-family) !important;
+            font-size: var(--font-size) !important;
+            line-height: var(--line-height) !important;
         }
 
         [dir="rtl"] .gutter {
@@ -303,8 +307,6 @@
             resize: none;
             background-color: transparent;
             color: var(--text-color);
-            font-size: var(--font-size);
-            line-height: var(--line-height);
             padding: 10px;
             width: 100%;
             height: 100%;
@@ -445,7 +447,7 @@
             box-shadow: 0 0 0 2px rgba(0, 103, 184, 0.2);
         }
 
-        /* Search / Replace Panel (مدرن و شیشه‌ای) */
+        /* Search / Replace Panel */
         .search-panel {
             display: none;
             position: absolute;
@@ -502,7 +504,6 @@
             }
         }
 
-        /* کدهای چاپ (فقط محتوای ادیتور به صورت تمیز چاپ می‌شود) */
         @media print {
             body * {
                 visibility: hidden;
@@ -536,7 +537,8 @@
 
     <!-- Menu Bar -->
     <div class="menubar" id="menubar">
-        <div class="menu-item" id="root-menu-file">فایل
+        <div class="menu-item" id="root-menu-file">
+            <span class="menu-title">فایل</span>
             <div class="dropdown">
                 <div class="dropdown-item" id="menu-new">جدید <span class="shortcut-hint">Ctrl+N</span></div>
                 <div class="dropdown-item" id="menu-open">باز کردن... <span class="shortcut-hint">Ctrl+O</span></div>
@@ -547,7 +549,8 @@
                 <div class="dropdown-item" id="menu-close">بستن تب <span class="shortcut-hint">Ctrl+W</span></div>
             </div>
         </div>
-        <div class="menu-item" id="root-menu-edit">ویرایش
+        <div class="menu-item" id="root-menu-edit">
+            <span class="menu-title">ویرایش</span>
             <div class="dropdown">
                 <div class="dropdown-item" id="menu-undo">واگرد <span class="shortcut-hint">Ctrl+Z</span></div>
                 <div class="dropdown-item" id="menu-redo">مجدد <span class="shortcut-hint">Ctrl+Y</span></div>
@@ -560,7 +563,8 @@
                 <div class="dropdown-item" id="menu-insert-date">درج تاریخ/ساعت <span class="shortcut-hint">F5</span></div>
             </div>
         </div>
-        <div class="menu-item" id="root-menu-view">نمایش
+        <div class="menu-item" id="root-menu-view">
+            <span class="menu-title">نمایش</span>
             <div class="dropdown">
                 <div class="dropdown-item" id="menu-zoom-in">بزرگنمایی <span class="shortcut-hint">Ctrl++</span></div>
                 <div class="dropdown-item" id="menu-zoom-out">کوچکنمایی <span class="shortcut-hint">Ctrl+-</span></div>
@@ -574,7 +578,8 @@
             </div>
         </div>
         <div class="menu-item" id="menu-settings-trigger">تنظیمات</div>
-        <div class="menu-item" id="root-menu-help">راهنما
+        <div class="menu-item" id="root-menu-help">
+            <span class="menu-title">راهنما</span>
             <div class="dropdown">
                 <div class="dropdown-item" id="menu-about">درباره Notepad</div>
             </div>
