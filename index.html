@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notepad</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#202020">
+    <style>
+        :root {
+            --bg-app: #f3f3f3;
+            --bg-editor: #ffffff;
+            --bg-menu: #f9f9f9;
+            --bg-active-tab: #ffffff;
+            --bg-hover: #eaeaea;
+            --text-color: #1c1c1c;
+            --border-color: #e5e5e5;
+            --accent-color: #0067b8;
+            --accent-hover: #005da6;
+            --status-bg: #f3f3f3;
+            --modal-bg: rgba(255, 255, 255, 0.9);
+            --dialog-bg: #ffffff;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-size: 14px;
+            --line-height: 1.5;
+        }
+
+        [data-theme="dark"] {
+            --bg-app: #202020;
+            --bg-editor: #2d2d2d;
+            --bg-menu: #2c2c2c;
+            --bg-active-tab: #2d2d2d;
+            --bg-hover: #3d3d3d;
+            --text-color: #ffffff;
+            --border-color: #3c3c3c;
+            --accent-color: #60cdff;
+            --accent-hover: #0078d4;
+            --status-bg: #202020;
+            --modal-bg: rgba(32, 32, 32, 0.85);
+            --dialog-bg: #2b2b2b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            user-select: none;
+        }
+
+        body, html {
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-app);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .window {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Titlebar & Tabs */
+        .titlebar {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-app);
+            padding: 4px 8px 0 8px;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            overflow-x: auto;
+            flex-grow: 1;
+        }
+
+        .tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: transparent;
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            padding: 6px 16px;
+            font-size: 12px;
+            cursor: pointer;
+            min-width: 120px;
+            max-width: 200px;
+            justify-content: space-between;
+            transition: background-color 0.2s;
+        }
+
+        .tab.active {
+            background-color: var(--bg-active-tab);
+            border-color: var(--border-color);
+        }
+
+        .tab:hover:not(.active) {
+            background-color: var(--bg-hover);
+        }
+
+        .tab-title {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-grow: 1;
+        }
+
+        .tab-close {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 10px;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tab-close:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .add-tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+        }
+
+        .add-tab-btn:hover {
+            background-color: var(--bg-hover);
+        }
+
+        /* Menu Bar */
+        .menubar {
+            display: flex;
+            background-color: var(--bg-menu);
+            border-bottom: 1px solid var(--border-color);
+            padding: 2px 8px;
+            z-index: 10;
+        }
+
+        .menu-item {
+            position: relative;
+            padding: 6px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .menu-item:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: var(--dialog-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 6px;
+            min-width: 180px;
+            padding: 4px 0;
+            z-index: 100;
+        }
+
+        .menu-item.active .dropdown {
+            display: block;
+        }
+
+        .dropdown-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 16px;
+            font-size: 13px;
+            color: var(--text-color);
+            text-decoration: none;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 4px 0;
+        }
+
+        .shortcut-hint {
+            opacity: 0.5;
+            font-size: 11px;
+            margin-right: 15px;
+        }
+
+        /* Workspace & Editor */
+        .workspace {
+            display: flex;
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+            background-color: var(--bg-editor);
+        }
+
+        .editor-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .gutter {
+            width: 45px;
+            background-color: var(--bg-app);
+            border-left: 1px solid var(--border-color);
+            text-align: center;
+            padding-top: 10px;
+            font-family: monospace;
+            font-size: var(--font-size);
+            line-height: var(--line-height);
+            color: #858585;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .editor {
+            flex-grow: 1;
+            border: none;
+            outline: none;
+            resize: none;
+            background-color: transparent;
+            color: var(--text-color);
+            font-family: var(--font-family);
+            font-size: var(--font-size);
+            line-height: var(--line-height);
+            padding: 10px;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            direction: rtl;
+            user-select: text;
+        }
+
+        .editor.word-wrap {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .editor:not(.word-wrap) {
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        /* Status Bar */
+        .statusbar {
+            display: flex;
+            justify-content: space-between;
+            background-color: var(--status-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 4px 12px;
+            font-size: 12px;
+            color: var(--text-color);
+        }
+
+        .statusbar-section {
+            display: flex;
+            gap: 16px;
+        }
+
+        /* Dialogs / Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--modal-bg);
+            backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .dialog {
+            background-color: var(--dialog-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+            padding: 20px;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .dialog-header {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .dialog-body {
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .dialog-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 6px 16px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-hover);
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: #ffffff;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .input-group label {
+            font-size: 12px;
+        }
+
+        .input-field {
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-editor);
+            color: var(--text-color);
+            outline: none;
+        }
+
+        /* Search / Replace Panel */
+        .search-panel {
+            display: none;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: var(--dialog-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            z-index: 50;
+            flex-direction: column;
+            gap: 8px;
+            width: 320px;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        /* Utility */
+        .rtl { direction: rtl; }
+        .ltr { direction: ltr; }
+    </style>
+</head>
+<body data-theme="dark">
+
+<div class="window">
+    <!-- Titlebar & Tabs -->
+    <div class="titlebar">
+        <div class="tab-container" id="tab-container">
+            <!-- Tabs will be dynamically loaded -->
+        </div>
+        <button class="add-tab-btn" id="add-tab" title="تب جدید (Ctrl+N)">+</button>
+    </div>
+
+    <!-- Menu Bar -->
+    <div class="menubar" id="menubar">
+        <div class="menu-item">فایل
+            <div class="dropdown">
+                <div class="dropdown-item" id="menu-new">جدید <span class="shortcut-hint">Ctrl+N</span></div>
+                <div class="dropdown-item" id="menu-open">باز کردن... <span class="shortcut-hint">Ctrl+O</span></div>
+                <div class="dropdown-item" id="menu-save">ذخیره <span class="shortcut-hint">Ctrl+S</span></div>
+                <div class="dropdown-item" id="menu-save-as">ذخیره به عنوان... <span class="shortcut-hint">Ctrl+Shift+S</span></div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" id="menu-print">چاپ <span class="shortcut-hint">Ctrl+P</span></div>
+                <div class="dropdown-item" id="menu-close">بستن تب <span class="shortcut-hint">Ctrl+W</span></div>
+            </div>
+        </div>
+        <div class="menu-item">ویرایش
+            <div class="dropdown">
+                <div class="dropdown-item" id="menu-undo">واگرد <span class="shortcut-hint">Ctrl+Z</span></div>
+                <div class="dropdown-item" id="menu-redo">مجدد <span class="shortcut-hint">Ctrl+Y</span></div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" id="menu-find">جستجو <span class="shortcut-hint">Ctrl+F</span></div>
+                <div class="dropdown-item" id="menu-replace">جایگزینی <span class="shortcut-hint">Ctrl+H</span></div>
+                <div class="dropdown-item" id="menu-goto">برو به خط... <span class="shortcut-hint">Ctrl+G</span></div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" id="menu-select-all">انتخاب همه <span class="shortcut-hint">Ctrl+A</span></div>
+                <div class="dropdown-item" id="menu-insert-date">درج تاریخ/ساعت <span class="shortcut-hint">F5</span></div>
+            </div>
+        </div>
+        <div class="menu-item">نمایش
+            <div class="dropdown">
+                <div class="dropdown-item" id="menu-zoom-in">بزرگنمایی <span class="shortcut-hint">Ctrl++</span></div>
+                <div class="dropdown-item" id="menu-zoom-out">کوچکنمایی <span class="shortcut-hint">Ctrl+-</span></div>
+                <div class="dropdown-item" id="menu-zoom-reset">تنظیم پیش‌فرض <span class="shortcut-hint">Ctrl+0</span></div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" id="menu-word-wrap">شکستن خودکار خطوط</div>
+                <div class="dropdown-item" id="menu-toggle-lines">نمایش شماره خطوط</div>
+                <div class="dropdown-item" id="menu-toggle-status">نمایش نوار وضعیت</div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" id="menu-theme-toggle">تغییر تم (تاریک/روشن)</div>
+            </div>
+        </div>
+        <div class="menu-item" id="menu-settings-trigger">تنظیمات</div>
+        <div class="menu-item">راهنما
+            <div class="dropdown">
+                <div class="dropdown-item" id="menu-about">درباره Notepad</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workspace -->
+    <div class="workspace">
+        <!-- Find & Replace Floating Panel -->
+        <div class="search-panel" id="search-panel">
+            <div class="search-row">
+                <input type="text" id="find-input" class="input-field" placeholder="جستجو..." style="flex-grow: 1;">
+                <button class="btn" id="find-prev-btn" title="قبلی">↑</button>
+                <button class="btn" id="find-next-btn" title="بعدی">↓</button>
+                <button class="btn" id="close-search-btn" title="بستن">✕</button>
+            </div>
+            <div class="search-row" id="replace-row" style="display: none;">
+                <input type="text" id="replace-input" class="input-field" placeholder="جایگزینی با..." style="flex-grow: 1;">
+                <button class="btn" id="replace-btn">جایگزینی</button>
+                <button class="btn" id="replace-all-btn">همه</button>
+            </div>
+            <div style="font-size: 11px; display: flex; gap: 10px;">
+                <label><input type="checkbox" id="match-case-chk"> تطابق بزرگی/کوچکی حروف</label>
+                <span id="search-results-count" style="margin-right: auto;">0/0</span>
+            </div>
+        </div>
+
+        <div class="editor-container">
+            <div class="gutter" id="gutter">1</div>
+            <textarea class="editor word-wrap" id="editor" spellcheck="false" placeholder="تایپ کنید..."></textarea>
+        </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="statusbar" id="statusbar">
+        <div class="statusbar-section">
+            <span id="status-caret">خط ۱، ستون ۱</span>
+            <span id="status-stats">تعداد کاراکتر: ۰ | کلمات: ۰</span>
+        </div>
+        <div class="statusbar-section">
+            <span id="status-zoom">۱۰۰٪</span>
+            <span>UTF-8</span>
+            <span id="status-direction">راست‌چین (RTL)</span>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="modal" id="modal-about">
+    <div class="dialog">
+        <div class="dialog-header">درباره Notepad وب</div>
+        <div class="dialog-body">
+            <p><strong>Notepad (PWA) نسخه وب</strong></p>
+            <p>یک ویرایشگر متن سبک و سریع با ظاهر مدرن ویندوز ۱۱.</p>
+            <p>سازگار با وب، پیاده‌سازی شده به‌صورت آفلاین و دارای قابلیت نصب به صورت PWA [PWA].</p>
+            <p>توسعه‌یافته با جاوااسکریپت استاندارد.</p>
+        </div>
+        <div class="dialog-footer">
+            <button class="btn btn-primary modal-close-btn">بستن</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal-settings">
+    <div class="dialog">
+        <div class="dialog-header">تنظیمات وب‌اپ</div>
+        <div class="dialog-body">
+            <div class="input-group">
+                <label>فونت ویرایشگر</label>
+                <select id="setting-font" class="input-field">
+                    <option value="'Segoe UI', sans-serif">Segoe UI</option>
+                    <option value="Consolas, monospace">Consolas</option>
+                    <option value="'Courier New', monospace">Courier New</option>
+                    <option value="Tahoma, Geneva, sans-serif">Tahoma (مناسب فارسی)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>اندازه فونت (پیکسل)</label>
+                <input type="number" id="setting-fontsize" class="input-field" min="10" max="48" value="14">
+            </div>
+            <div class="input-group">
+                <label>فاصله بین خطوط</label>
+                <input type="number" id="setting-lineheight" class="input-field" min="1" max="3" step="0.1" value="1.5">
+            </div>
+            <div class="input-group">
+                <label>جهت پیش‌فرض متن</label>
+                <select id="setting-dir" class="input-field">
+                    <option value="rtl">راست‌چین (فارسی/عربی)</option>
+                    <option value="ltr">چپ‌چین (انگلیسی/کد)</option>
+                </select>
+            </div>
+        </div>
+        <div class="dialog-footer">
+            <button class="btn btn-primary" id="save-settings-btn">ذخیره تنظیمات</button>
+            <button class="btn modal-close-btn">لغو</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal-goto">
+    <div class="dialog">
+        <div class="dialog-header">برو به خط</div>
+        <div class="dialog-body">
+            <div class="input-group">
+                <label>شماره خط را وارد کنید:</label>
+                <input type="number" id="goto-line-input" class="input-field" min="1" value="1">
+            </div>
+        </div>
+        <div class="dialog-footer">
+            <button class="btn btn-primary" id="goto-confirm-btn">برو</button>
+            <button class="btn modal-close-btn">لغو</button>
+        </div>
+    </div>
+</div>
+
+<script src="app.js" type="module"></script>
+</body>
+</html>
