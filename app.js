@@ -1,4 +1,4 @@
-// START OF FILE Notepad-main/app.js
+// START OF FILE Notepad-main/app.js (نسخه نهایی)
 
 const locales = {
     fa: {
@@ -28,9 +28,6 @@ const locales = {
         menuWordWrap: 'شکستن خودکار خطوط',
         menuToggleLines: 'نمایش شماره خطوط',
         menuToggleStatus: 'نمایش نوار وضعیت',
-        menuThemeToggle: 'تغییر تم (تاریک/روشن)',
-        menuToggleDir: 'تغییر جهت نوشتار',
-        menuSettings: 'تنظیمات',
         menuHelp: 'راهنما',
         menuAbout: 'درباره Notepad',
         findPlaceholder: 'جستجو...',
@@ -48,17 +45,21 @@ const locales = {
         modalAboutText4: 'توسعه‌یافته با جاوااسکریپت استاندارد.',
         modalClose: 'بستن',
         modalCancel: 'لغو',
-        modalSettingsTitle: 'تنظیمات وب‌اپ',
-        settingFontLabel: 'فونت ویرایشگر',
-        settingFontSizeLabel: 'اندازه فونت (پیکسل)',
-        settingLineHeightLabel: 'فاصله بین خطوط',
-        settingLangLabel: 'زبان برنامه',
-        settingSave: 'ذخیره تنظیمات',
         modalGotoTitle: 'برو به خط',
         modalGotoLabel: 'شماره خط را وارد کنید:',
         modalGotoBtn: 'برو',
         defaultTabTitle: 'سند جدید',
-        unsavedWarning: 'تغییرات ذخیره نشده‌اند. آیا مایل به بستن هستید؟'
+        unsavedWarning: 'تغییرات ذخیره نشده‌اند. آیا مایل به بستن هستید؟',
+        settingsTitle: 'تنظیمات',
+        fontLabel: 'فونت',
+        fontSizeLabel: 'اندازه فونت',
+        lineHeightLabel: 'فاصله خطوط',
+        langLabel: 'زبان',
+        themeLabel: 'تم',
+        themeDark: 'تاریک',
+        themeLight: 'روشن',
+        langFa: 'فارسی',
+        langEn: 'انگلیسی'
     },
     en: {
         dir: 'ltr',
@@ -87,9 +88,6 @@ const locales = {
         menuWordWrap: 'Word Wrap',
         menuToggleLines: 'Show Line Numbers',
         menuToggleStatus: 'Show Status Bar',
-        menuThemeToggle: 'Toggle Theme (Dark/Light)',
-        menuToggleDir: 'Toggle Text Direction',
-        menuSettings: 'Settings',
         menuHelp: 'Help',
         menuAbout: 'About Notepad',
         findPlaceholder: 'Find...',
@@ -107,17 +105,21 @@ const locales = {
         modalAboutText4: 'Developed with standard modern JavaScript.',
         modalClose: 'Close',
         modalCancel: 'Cancel',
-        modalSettingsTitle: 'Web App Settings',
-        settingFontLabel: 'Editor Font',
-        settingFontSizeLabel: 'Font Size (px)',
-        settingLineHeightLabel: 'Line Height',
-        settingLangLabel: 'App Language',
-        settingSave: 'Save Settings',
         modalGotoTitle: 'Go to Line',
         modalGotoLabel: 'Enter line number:',
         modalGotoBtn: 'Go',
         defaultTabTitle: 'Untitled',
-        unsavedWarning: 'Changes have not been saved. Do you want to close this tab?'
+        unsavedWarning: 'Changes have not been saved. Do you want to close this tab?',
+        settingsTitle: 'Settings',
+        fontLabel: 'Font',
+        fontSizeLabel: 'Font Size',
+        lineHeightLabel: 'Line Height',
+        langLabel: 'Language',
+        themeLabel: 'Theme',
+        themeDark: 'Dark',
+        themeLight: 'Light',
+        langFa: 'Persian',
+        langEn: 'English'
     }
 };
 
@@ -152,6 +154,7 @@ let searchState = {
     currentIndex: -1,
     query: ''
 };
+let searchTimeout = null;
 
 let autoSaveTimer = null;
 
@@ -186,6 +189,7 @@ function saveSettings() {
         fontFamily: state.fontFamily,
         dir: state.dir
     }));
+    updateSettingsDisplay();
 }
 
 function loadSettings() {
@@ -213,17 +217,14 @@ function applyLocalization(lang) {
         state.fontFamily = "Consolas, monospace";
     }
     
-    const fileTitle = document.querySelector('#root-menu-file .menu-title');
-    if (fileTitle) fileTitle.textContent = t.menuFile;
-    const editTitle = document.querySelector('#root-menu-edit .menu-title');
-    if (editTitle) editTitle.textContent = t.menuEdit;
-    const viewTitle = document.querySelector('#root-menu-view .menu-title');
-    if (viewTitle) viewTitle.textContent = t.menuView;
-    const helpTitle = document.querySelector('#root-menu-help .menu-title');
-    if (helpTitle) helpTitle.textContent = t.menuHelp;
-    const menuSettingsTrigger = document.getElementById('menu-settings-trigger');
-    if (menuSettingsTrigger) menuSettingsTrigger.textContent = t.menuSettings;
+    // به‌روزرسانی عناوین منوها
+    document.querySelector('#root-menu-file .menu-title').textContent = t.menuFile;
+    document.querySelector('#root-menu-edit .menu-title').textContent = t.menuEdit;
+    document.querySelector('#root-menu-view .menu-title').textContent = t.menuView;
+    document.querySelector('#root-menu-help .menu-title').textContent = t.menuHelp;
+    document.querySelector('#root-menu-settings .menu-title').textContent = t.settingsTitle;
 
+    // آیتم‌های منو
     updateMenuShortcut('menu-new', t.menuNew, 'Ctrl+N');
     updateMenuShortcut('menu-open', t.menuOpen, 'Ctrl+O');
     updateMenuShortcut('menu-save', t.menuSave, 'Ctrl+S');
@@ -241,8 +242,6 @@ function applyLocalization(lang) {
     updateMenuShortcut('menu-zoom-in', t.menuZoomIn, 'Ctrl++');
     updateMenuShortcut('menu-zoom-out', t.menuZoomOut, 'Ctrl+-');
     updateMenuShortcut('menu-zoom-reset', t.menuZoomReset, 'Ctrl+0');
-    updateMenuShortcut('menu-toggle-dir', t.menuToggleDir, 'Ctrl+Shift+R');
-
     document.getElementById('menu-about').textContent = t.menuAbout;
     updateToggleMenuTexts();
 
@@ -252,6 +251,7 @@ function applyLocalization(lang) {
     document.getElementById('replace-all-btn').textContent = t.findBtnReplaceAll;
     document.getElementById('match-case-label').innerHTML = `<input type="checkbox" id="match-case-chk" ${matchCaseChk.checked ? 'checked' : ''}> ` + t.matchCaseLabel;
 
+    // درباره
     const aboutModal = document.getElementById('modal-about');
     aboutModal.querySelector('.dialog-header').textContent = t.modalAboutTitle;
     const aboutBodyPs = aboutModal.querySelectorAll('.dialog-body p');
@@ -261,24 +261,16 @@ function applyLocalization(lang) {
     aboutBodyPs[3].textContent = t.modalAboutText4;
     aboutModal.querySelector('.modal-close-btn').textContent = t.modalClose;
 
-    const settingsModal = document.getElementById('modal-settings');
-    settingsModal.querySelector('.dialog-header').textContent = t.modalSettingsTitle;
-    document.getElementById('setting-font-label').textContent = t.settingFontLabel;
-    document.getElementById('setting-fontsize-label').textContent = t.settingFontSizeLabel;
-    document.getElementById('setting-lineheight-label').textContent = t.settingLineHeightLabel;
-    document.getElementById('setting-lang-label').textContent = t.settingLangLabel;
-    document.getElementById('save-settings-btn').textContent = t.settingSave;
-    settingsModal.querySelector('.modal-close-btn').textContent = t.modalCancel;
-
+    // مودال گوتو
     const gotoModal = document.getElementById('modal-goto');
     gotoModal.querySelector('.dialog-header').textContent = t.modalGotoTitle;
     document.getElementById('goto-line-label').textContent = t.modalGotoLabel;
     document.getElementById('goto-confirm-btn').textContent = t.modalGotoBtn;
     gotoModal.querySelector('.modal-close-btn').textContent = t.modalCancel;
 
-    populateFontOptions(lang);
     editor.placeholder = lang === 'fa' ? 'تایپ کنید...' : 'Type here...';
     updateStatusBar();
+    updateSettingsDisplay();
 }
 
 function updateMenuShortcut(id, text, shortcut) {
@@ -295,33 +287,14 @@ function updateToggleMenuTexts() {
     document.getElementById('menu-toggle-status').textContent = (state.showStatus ? '✓ ' : '') + t.menuToggleStatus;
 }
 
-function populateFontOptions(lang) {
-    const fontSelect = document.getElementById('setting-font');
-    if (!fontSelect) return;
-    fontSelect.innerHTML = '';
-    if (lang === 'fa') {
-        const opt = document.createElement('option');
-        opt.value = "'Vazir', sans-serif";
-        opt.textContent = "Vazir (وزیر)";
-        fontSelect.appendChild(opt);
-    } else {
-        const options = [
-            { name: "Segoe UI", value: "'Segoe UI', sans-serif" },
-            { name: "Consolas (Monospace)", value: "Consolas, monospace" },
-            { name: "Courier New", value: "'Courier New', monospace" }
-        ];
-        options.forEach(item => {
-            const opt = document.createElement('option');
-            opt.value = item.value;
-            opt.textContent = item.name;
-            fontSelect.appendChild(opt);
-        });
-    }
-    fontSelect.value = state.fontFamily;
-}
-
 function applyTheme() {
     document.body.setAttribute('data-theme', state.theme);
+    const icon = document.getElementById('theme-icon');
+    if (state.theme === 'dark') {
+        icon.textContent = '🌙';
+    } else {
+        icon.textContent = '☀️';
+    }
 }
 
 function applySettingsStyles() {
@@ -341,6 +314,60 @@ function applySettingsStyles() {
     updateGutter();
 }
 
+function updateGutter() {
+    if (!state.showLines) return;
+    const lines = editor.value.split('\n');
+    const totalLines = lines.length;
+    let html = '';
+    for (let i = 1; i <= totalLines; i++) {
+        html += `<div>${i}</div>`;
+    }
+    gutter.innerHTML = html;
+    gutter.scrollTop = editor.scrollTop;
+}
+
+function updateStatusBar() {
+    const t = locales[state.lang];
+    const textBeforeCaret = editor.value.substring(0, editor.selectionStart);
+    const lines = textBeforeCaret.split('\n');
+    const currentLine = lines.length;
+    const currentCol = lines[lines.length - 1].length + 1;
+    document.getElementById('status-caret').textContent = t.statusCaret
+        .replace('{line}', currentLine)
+        .replace('{col}', currentCol);
+    const charCount = editor.value.length;
+    const words = editor.value.trim() ? editor.value.trim().split(/\s+/).length : 0;
+    document.getElementById('status-stats').textContent = t.statusStats
+        .replace('{chars}', charCount)
+        .replace('{words}', words);
+    document.getElementById('status-zoom').textContent = `${state.zoom}%`;
+    document.getElementById('status-direction').textContent = state.dir === 'rtl' ? t.statusDirection : 'LTR';
+}
+
+function updateSettingsDisplay() {
+    const t = locales[state.lang];
+    // نمایش مقادیر فعلی در منوی تنظیمات
+    const fontDisplay = document.getElementById('settings-font-display');
+    if (fontDisplay) {
+        const fontName = state.fontFamily.includes('Vazir') ? 'Vazir' :
+                         state.fontFamily.includes('Consolas') ? 'Consolas' :
+                         state.fontFamily.includes('Segoe') ? 'Segoe UI' : 'Custom';
+        fontDisplay.textContent = fontName;
+    }
+    const fontSizeDisplay = document.getElementById('settings-fontsize-display');
+    if (fontSizeDisplay) fontSizeDisplay.textContent = state.fontSize;
+    const lineHeightDisplay = document.getElementById('settings-lineheight-display');
+    if (lineHeightDisplay) lineHeightDisplay.textContent = state.lineHeight;
+    const langDisplay = document.getElementById('settings-lang-display');
+    if (langDisplay) langDisplay.textContent = state.lang === 'fa' ? t.langFa : t.langEn;
+    const themeDisplay = document.getElementById('settings-theme-display');
+    if (themeDisplay) themeDisplay.textContent = state.theme === 'dark' ? t.themeDark : t.themeLight;
+    
+    // دکمه زبان
+    const langLabel = document.getElementById('lang-label');
+    if (langLabel) langLabel.textContent = state.lang === 'fa' ? 'فا' : 'En';
+}
+
 function createNewTab(title = null, content = '', path = null) {
     const newId = Date.now().toString() + Math.random().toString(36).substring(2, 7);
     const newTab = {
@@ -355,7 +382,6 @@ function createNewTab(title = null, content = '', path = null) {
     state.tabs.push(newTab);
     renderTabs();
     selectTab(newId);
-    // بارگذاری محتوای ذخیره شده خودکار برای این تب
     const saved = localStorage.getItem('notepad_autosave_' + newId);
     if (saved) {
         const tab = state.tabs.find(t => t.id === newId);
@@ -418,7 +444,6 @@ function closeTab(id) {
         const t = locales[state.lang];
         if (!confirm(t.unsavedWarning)) return;
     }
-    // پاک کردن auto-save
     localStorage.removeItem('notepad_autosave_' + id);
     state.tabs.splice(tabIndex, 1);
     if (state.tabs.length === 0) {
@@ -440,7 +465,7 @@ function renameTab() {
     const newName = prompt(t.menuRename + ':', tab.title);
     if (newName && newName.trim() !== '') {
         tab.title = newName.trim();
-        tab.isDirty = true; // تغییر نام هم به عنوان تغییر محسوب می‌شود
+        tab.isDirty = true;
         renderTabs();
         saveSettings();
     }
@@ -453,127 +478,88 @@ function toggleDirection() {
     saveSettings();
 }
 
-function updateGutter() {
-    if (!state.showLines) return;
-    const lines = editor.value.split('\n');
-    const totalLines = lines.length;
-    let html = '';
-    for (let i = 1; i <= totalLines; i++) {
-        html += `<div>${i}</div>`;
-    }
-    gutter.innerHTML = html;
-    gutter.scrollTop = editor.scrollTop;
-}
-
-function updateStatusBar() {
-    const t = locales[state.lang];
-    const textBeforeCaret = editor.value.substring(0, editor.selectionStart);
-    const lines = textBeforeCaret.split('\n');
-    const currentLine = lines.length;
-    const currentCol = lines[lines.length - 1].length + 1;
-    document.getElementById('status-caret').textContent = t.statusCaret
-        .replace('{line}', currentLine)
-        .replace('{col}', currentCol);
-    const charCount = editor.value.length;
-    const words = editor.value.trim() ? editor.value.trim().split(/\s+/).length : 0;
-    document.getElementById('status-stats').textContent = t.statusStats
-        .replace('{chars}', charCount)
-        .replace('{words}', words);
-    document.getElementById('status-zoom').textContent = `${state.zoom}%`;
-    document.getElementById('status-direction').textContent = state.dir === 'rtl' ? t.statusDirection : 'LTR';
-}
-
-let historyTimer = null;
-function handleTyping() {
-    const tab = state.tabs.find(t => t.id === state.activeTabId);
-    if (!tab) return;
-    const currentText = editor.value;
-    if (currentText !== tab.content) {
-        tab.content = currentText;
-        tab.isDirty = true;
-        renderTabs();
-        updateGutter();
-        updateStatusBar();
-        clearTimeout(historyTimer);
-        historyTimer = setTimeout(() => {
-            if (tab.history[tab.historyIndex] !== currentText) {
-                tab.history = tab.history.slice(0, tab.historyIndex + 1);
-                tab.history.push(currentText);
-                if (tab.history.length > 50) tab.history.shift();
-                tab.historyIndex = tab.history.length - 1;
+// ---------- تنظیمات منوی کشویی ----------
+function setupSettingsDropdown() {
+    const settingsItems = document.querySelectorAll('#settings-dropdown .dropdown-item');
+    settingsItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const setting = item.dataset.setting;
+            switch (setting) {
+                case 'font':
+                    // چرخش بین فونت‌های موجود
+                    const fonts = ["'Vazir', sans-serif", "Consolas, monospace", "'Segoe UI', sans-serif"];
+                    let idx = fonts.indexOf(state.fontFamily);
+                    idx = (idx + 1) % fonts.length;
+                    state.fontFamily = fonts[idx];
+                    applySettingsStyles();
+                    saveSettings();
+                    break;
+                case 'fontsize':
+                    const sizes = [12, 14, 16, 18, 20];
+                    let si = sizes.indexOf(state.fontSize);
+                    si = (si + 1) % sizes.length;
+                    state.fontSize = sizes[si];
+                    applySettingsStyles();
+                    saveSettings();
+                    break;
+                case 'lineheight':
+                    const lhValues = [1, 1.2, 1.5, 2];
+                    let li = lhValues.indexOf(state.lineHeight);
+                    li = (li + 1) % lhValues.length;
+                    state.lineHeight = lhValues[li];
+                    applySettingsStyles();
+                    saveSettings();
+                    break;
+                case 'lang':
+                    state.lang = state.lang === 'fa' ? 'en' : 'fa';
+                    applyLocalization(state.lang);
+                    applySettingsStyles();
+                    saveSettings();
+                    break;
+                case 'theme':
+                    state.theme = state.theme === 'dark' ? 'light' : 'dark';
+                    applyTheme();
+                    saveSettings();
+                    break;
             }
-        }, 500);
-    }
+            updateSettingsDisplay();
+        });
+    });
 }
 
-function triggerUndo() {
-    const tab = state.tabs.find(t => t.id === state.activeTabId);
-    if (!tab || !tab.history || tab.historyIndex <= 0) return;
-    tab.historyIndex--;
-    editor.value = tab.history[tab.historyIndex];
-    tab.content = editor.value;
-    updateGutter();
-    updateStatusBar();
-}
-
-function triggerRedo() {
-    const tab = state.tabs.find(t => t.id === state.activeTabId);
-    if (!tab || !tab.history || tab.historyIndex >= tab.history.length - 1) return;
-    tab.historyIndex++;
-    editor.value = tab.history[tab.historyIndex];
-    tab.content = editor.value;
-    updateGutter();
-    updateStatusBar();
-}
-
-function openModal(id) {
-    const modal = document.getElementById(id);
-    if (modal) {
-        modal.style.display = 'flex';
-        if (id === 'modal-settings') {
-            document.getElementById('setting-fontsize').value = state.fontSize;
-            document.getElementById('setting-lineheight').value = state.lineHeight;
-            document.getElementById('setting-lang').value = state.lang;
-            populateFontOptions(state.lang);
-        }
-    }
-}
-
-function closeModal(id) {
-    const modal = document.getElementById(id);
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
+// ---------- جستجو با debounce ----------
 function performSearch() {
-    const query = findInput.value;
-    if (!query) {
-        searchState = { matches: [], currentIndex: -1, query: '' };
-        resultsCount.textContent = '0/0';
-        return;
-    }
-    const text = editor.value;
-    const matchCase = matchCaseChk.checked;
-    const findStr = matchCase ? query : query.toLowerCase();
-    const targetStr = matchCase ? text : text.toLowerCase();
-    const matches = [];
-    let idx = targetStr.indexOf(findStr);
-    while (idx !== -1) {
-        matches.push({ start: idx, end: idx + findStr.length });
-        idx = targetStr.indexOf(findStr, idx + findStr.length || idx + 1);
-    }
-    searchState.matches = matches;
-    searchState.query = query;
-    if (matches.length > 0) {
-        if (searchState.currentIndex < 0 || searchState.currentIndex >= matches.length) {
-            searchState.currentIndex = 0;
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        const query = findInput.value;
+        if (!query) {
+            searchState = { matches: [], currentIndex: -1, query: '' };
+            resultsCount.textContent = '0/0';
+            return;
         }
-        highlightMatch(searchState.currentIndex);
-    } else {
-        searchState.currentIndex = -1;
-    }
-    updateSearchUI();
+        const text = editor.value;
+        const matchCase = matchCaseChk.checked;
+        const findStr = matchCase ? query : query.toLowerCase();
+        const targetStr = matchCase ? text : text.toLowerCase();
+        const matches = [];
+        let idx = targetStr.indexOf(findStr);
+        while (idx !== -1) {
+            matches.push({ start: idx, end: idx + findStr.length });
+            idx = targetStr.indexOf(findStr, idx + findStr.length || idx + 1);
+        }
+        searchState.matches = matches;
+        searchState.query = query;
+        if (matches.length > 0) {
+            if (searchState.currentIndex < 0 || searchState.currentIndex >= matches.length) {
+                searchState.currentIndex = 0;
+            }
+            highlightMatch(searchState.currentIndex);
+        } else {
+            searchState.currentIndex = -1;
+        }
+        updateSearchUI();
+    }, 300);
 }
 
 function highlightMatch(idx) {
@@ -634,46 +620,7 @@ function replaceAll() {
     performSearch();
 }
 
-function triggerOpenFile() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.txt,.html,.css,.js,.json,.md';
-    input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-            createNewTab(file.name, evt.target.result, file.name);
-        };
-        reader.readAsText(file);
-    };
-    input.click();
-}
-
-function triggerSave(saveAs = false) {
-    const tab = state.tabs.find(t => t.id === state.activeTabId);
-    if (!tab) return;
-    if (saveAs || !tab.path) {
-        const promptTitle = state.lang === 'fa' ? 'نام فایل برای ذخیره سازی را وارد کنید:' : 'Enter file name to save:';
-        const filename = prompt(promptTitle, tab.path || tab.title + '.txt');
-        if (!filename) return;
-        tab.title = filename;
-        tab.path = filename;
-    }
-    const blob = new Blob([editor.value], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = tab.path || tab.title;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    tab.isDirty = false;
-    renderTabs();
-}
-
-// Auto-save functions
+// ---------- Auto-save ----------
 function startAutoSave() {
     if (autoSaveTimer) clearInterval(autoSaveTimer);
     autoSaveTimer = setInterval(() => {
@@ -685,10 +632,10 @@ function startAutoSave() {
 }
 
 function loadAutoSavedContent() {
-    // در createNewTab بارگذاری می‌شود
+    // انجام شده در createNewTab
 }
 
-// Drag and Drop
+// ---------- Drag and Drop ----------
 function setupDragDrop() {
     editor.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -708,6 +655,7 @@ function setupDragDrop() {
     });
 }
 
+// ---------- رویدادهای اصلی ----------
 function registerEvents() {
     setupDragDrop();
 
@@ -721,6 +669,7 @@ function registerEvents() {
 
     document.getElementById('add-tab').addEventListener('click', () => createNewTab());
 
+    // منوهای کشویی
     let activeDropdownRoot = null;
     document.querySelectorAll('.menubar .menu-item').forEach(menuRoot => {
         const dropdown = menuRoot.querySelector('.dropdown');
@@ -754,6 +703,25 @@ function registerEvents() {
         document.querySelectorAll('.menubar .menu-item').forEach(m => m.classList.remove('active'));
     }
 
+    // دکمه‌های جداگانه
+    document.getElementById('theme-toggle-btn').addEventListener('click', () => {
+        state.theme = state.theme === 'dark' ? 'light' : 'dark';
+        applyTheme();
+        saveSettings();
+        updateSettingsDisplay();
+    });
+    document.getElementById('lang-toggle-btn').addEventListener('click', () => {
+        state.lang = state.lang === 'fa' ? 'en' : 'fa';
+        applyLocalization(state.lang);
+        applySettingsStyles();
+        saveSettings();
+        updateSettingsDisplay();
+    });
+
+    // منوی تنظیمات کشویی
+    setupSettingsDropdown();
+
+    // سایر منوها
     document.getElementById('menu-new').addEventListener('click', () => createNewTab());
     document.getElementById('menu-open').addEventListener('click', triggerOpenFile);
     document.getElementById('menu-save').addEventListener('click', () => triggerSave(false));
@@ -819,33 +787,14 @@ function registerEvents() {
         updateToggleMenuTexts();
         saveSettings();
     });
-    document.getElementById('menu-theme-toggle').addEventListener('click', () => {
-        state.theme = state.theme === 'dark' ? 'light' : 'dark';
-        applyTheme();
-        saveSettings();
-    });
-    document.getElementById('menu-toggle-dir').addEventListener('click', toggleDirection);
-    document.getElementById('menu-settings-trigger').addEventListener('click', () => openModal('modal-settings'));
     document.getElementById('menu-about').addEventListener('click', () => openModal('modal-about'));
 
+    // مودال‌ها
     document.querySelectorAll('.modal-close-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const modal = e.target.closest('.modal');
             if (modal) closeModal(modal.id);
         });
-    });
-
-    document.getElementById('save-settings-btn').addEventListener('click', () => {
-        state.fontSize = parseInt(document.getElementById('setting-fontsize').value) || 14;
-        state.lineHeight = parseFloat(document.getElementById('setting-lineheight').value) || 1.5;
-        const nextLang = document.getElementById('setting-lang').value;
-        const fontChoice = document.getElementById('setting-font').value;
-        state.lang = nextLang;
-        state.fontFamily = fontChoice;
-        applyLocalization(nextLang);
-        applySettingsStyles();
-        saveSettings();
-        closeModal('modal-settings');
     });
 
     document.getElementById('goto-confirm-btn').addEventListener('click', () => {
@@ -863,10 +812,7 @@ function registerEvents() {
         editor.scrollTop = (target - 1) * (fontSizeVal * state.lineHeight);
     });
 
-    document.getElementById('setting-lang').addEventListener('change', (e) => {
-        populateFontOptions(e.target.value);
-    });
-
+    // جستجو
     findInput.addEventListener('input', performSearch);
     matchCaseChk.addEventListener('change', performSearch);
     document.getElementById('find-next-btn').addEventListener('click', findNext);
@@ -879,6 +825,7 @@ function registerEvents() {
         editor.focus();
     });
 
+    // کلیدهای میانبر
     window.addEventListener('keydown', (e) => {
         if (e.ctrlKey) {
             const key = e.key.toLowerCase();
@@ -912,6 +859,102 @@ function registerEvents() {
             renameTab();
         }
     });
+}
+
+function openModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function triggerOpenFile() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.txt,.html,.css,.js,.json,.md';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            createNewTab(file.name, evt.target.result, file.name);
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+}
+
+function triggerSave(saveAs = false) {
+    const tab = state.tabs.find(t => t.id === state.activeTabId);
+    if (!tab) return;
+    if (saveAs || !tab.path) {
+        const promptTitle = state.lang === 'fa' ? 'نام فایل برای ذخیره سازی را وارد کنید:' : 'Enter file name to save:';
+        const filename = prompt(promptTitle, tab.path || tab.title + '.txt');
+        if (!filename) return;
+        tab.title = filename;
+        tab.path = filename;
+    }
+    const blob = new Blob([editor.value], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = tab.path || tab.title;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    tab.isDirty = false;
+    renderTabs();
+}
+
+let historyTimer = null;
+function handleTyping() {
+    const tab = state.tabs.find(t => t.id === state.activeTabId);
+    if (!tab) return;
+    const currentText = editor.value;
+    if (currentText !== tab.content) {
+        tab.content = currentText;
+        tab.isDirty = true;
+        renderTabs();
+        updateGutter();
+        updateStatusBar();
+        clearTimeout(historyTimer);
+        historyTimer = setTimeout(() => {
+            if (tab.history[tab.historyIndex] !== currentText) {
+                tab.history = tab.history.slice(0, tab.historyIndex + 1);
+                tab.history.push(currentText);
+                if (tab.history.length > 50) tab.history.shift();
+                tab.historyIndex = tab.history.length - 1;
+            }
+        }, 500);
+    }
+}
+
+function triggerUndo() {
+    const tab = state.tabs.find(t => t.id === state.activeTabId);
+    if (!tab || !tab.history || tab.historyIndex <= 0) return;
+    tab.historyIndex--;
+    editor.value = tab.history[tab.historyIndex];
+    tab.content = editor.value;
+    updateGutter();
+    updateStatusBar();
+}
+
+function triggerRedo() {
+    const tab = state.tabs.find(t => t.id === state.activeTabId);
+    if (!tab || !tab.history || tab.historyIndex >= tab.history.length - 1) return;
+    tab.historyIndex++;
+    editor.value = tab.history[tab.historyIndex];
+    tab.content = editor.value;
+    updateGutter();
+    updateStatusBar();
 }
 
 init();
