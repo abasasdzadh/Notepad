@@ -26,7 +26,7 @@
             --font-mono: 'Consolas', 'Courier New', Courier, monospace;
             --font-size: 14px;
             --line-height: 1.5;
-            --font-family: 'Vazir', 'Segoe UI', sans-serif; /* اضافه شد */
+            --font-family: 'Vazir', 'Segoe UI', sans-serif;
         }
 
         [data-theme="dark"] {
@@ -180,6 +180,7 @@
             padding: 2px 8px;
             z-index: 10;
             white-space: nowrap;
+            align-items: center;
         }
         .menubar::-webkit-scrollbar {
             display: none;
@@ -217,7 +218,6 @@
             right: 0;
             left: auto;
         }
-
         [dir="ltr"] .dropdown {
             left: 0;
             right: auto;
@@ -255,6 +255,21 @@
             font-family: var(--font-mono);
         }
 
+        /* دکمه‌های تم و زبان در نوار منو */
+        .menu-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+        }
+        .menu-btn:hover {
+            background-color: var(--bg-hover);
+        }
+
         .workspace {
             display: flex;
             flex-grow: 1;
@@ -268,31 +283,45 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
+            position: relative;
+        }
+
+        /* گاتر جدید با موقعیت‌یابی مطلق و هماهنگ با خطوط */
+        .gutter-wrapper {
+            position: relative;
+            width: 50px;
+            min-width: 50px;
+            background-color: var(--bg-app);
+            border-left: 1px solid var(--border-color);
+            overflow: hidden;
+            user-select: none;
+            flex-shrink: 0;
+        }
+        [dir="rtl"] .gutter-wrapper {
+            border-left: none;
+            border-right: 1px solid var(--border-color);
         }
 
         .gutter {
-            width: 50px;
-            background-color: var(--bg-app);
-            text-align: center;
-            padding-top: 10px;
-            color: #858585;
-            overflow: hidden;
-            user-select: none;
-            transition: width 0.2s;
-        }
-
-        .editor, .gutter {
             font-family: var(--font-family) !important;
             font-size: var(--font-size) !important;
             line-height: var(--line-height) !important;
+            text-align: center;
+            color: #858585;
+            padding: 10px 0;
+            white-space: pre;
+            overflow: visible;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
         }
-
-        [dir="rtl"] .gutter {
-            border-left: 1px solid var(--border-color);
-        }
-
-        [dir="ltr"] .gutter {
-            border-right: 1px solid var(--border-color);
+        .gutter div {
+            height: calc(var(--font-size) * var(--line-height));
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .editor {
@@ -307,6 +336,9 @@
             height: 100%;
             overflow-y: auto;
             user-select: text;
+            font-family: var(--font-family) !important;
+            font-size: var(--font-size) !important;
+            line-height: var(--line-height) !important;
         }
 
         .editor.word-wrap {
@@ -452,7 +484,7 @@
             z-index: 50;
             flex-direction: column;
             gap: 10px;
-            width: 340px;
+            width: 380px;
             max-width: calc(100% - 24px);
             transition: all 0.3s ease;
         }
@@ -461,7 +493,6 @@
             left: 12px;
             right: auto;
         }
-
         [dir="ltr"] .search-panel {
             right: 12px;
             left: auto;
@@ -471,6 +502,9 @@
             display: flex;
             gap: 8px;
             align-items: center;
+        }
+        .search-row .btn {
+            flex-shrink: 0;
         }
 
         @media (max-width: 768px) {
@@ -509,7 +543,7 @@
                 background: #ffffff !important;
                 color: #000000 !important;
             }
-            .titlebar, .menubar, .statusbar, .gutter, .search-panel, .modal {
+            .titlebar, .menubar, .statusbar, .gutter-wrapper, .search-panel, .modal {
                 display: none !important;
             }
         }
@@ -524,75 +558,85 @@
     </div>
 
     <div class="menubar" id="menubar">
-    <div class="menu-item" id="root-menu-file">
-        <span class="menu-title">فایل</span>
-        <div class="dropdown">
-            <div class="dropdown-item" id="menu-new">جدید <span class="shortcut-hint">Ctrl+N</span></div>
-            <div class="dropdown-item" id="menu-open">باز کردن... <span class="shortcut-hint">Ctrl+O</span></div>
-            <div class="dropdown-item" id="menu-save">ذخیره <span class="shortcut-hint">Ctrl+S</span></div>
-            <div class="dropdown-item" id="menu-save-as">ذخیره به عنوان... <span class="shortcut-hint">Ctrl+Shift+S</span></div>
-            <div class="dropdown-divider"></div>
-            <div class="dropdown-item" id="menu-print">چاپ <span class="shortcut-hint">Ctrl+P</span></div>
-            <div class="dropdown-item" id="menu-close">بستن تب <span class="shortcut-hint">Ctrl+W</span></div>
+        <!-- منوی فایل -->
+        <div class="menu-item" id="root-menu-file">
+            <span class="menu-title">فایل</span>
+            <div class="dropdown">
+                <div class="dropdown-item" id="menu-new">جدید <span class="shortcut-hint">Ctrl+N</span></div>
+                <div class="dropdown-item" id="menu-open">باز کردن... <span class="shortcut-hint">Ctrl+O</span></div>
+                <div class="dropdown-item" id="menu-save">ذخیره <span class="shortcut-hint">Ctrl+S</span></div>
+                <div class="dropdown-item" id="menu-save-as">ذخیره به عنوان... <span class="shortcut-hint">Ctrl+Shift+S</span></div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" id="menu-print">چاپ <span class="shortcut-hint">Ctrl+P</span></div>
+                <div class="dropdown-item" id="menu-close">بستن تب <span class="shortcut-hint">Ctrl+W</span></div>
+            </div>
         </div>
-    </div>
-    <div class="menu-item" id="root-menu-edit">
-        <span class="menu-title">ویرایش</span>
-        <div class="dropdown">
-            <div class="dropdown-item" id="menu-undo">واگرد <span class="shortcut-hint">Ctrl+Z</span></div>
-            <div class="dropdown-item" id="menu-redo">مجدد <span class="shortcut-hint">Ctrl+Y</span></div>
-            <div class="dropdown-divider"></div>
-            <div class="dropdown-item" id="menu-find">جستجو <span class="shortcut-hint">Ctrl+F</span></div>
-            <div class="dropdown-item" id="menu-replace">جایگزینی <span class="shortcut-hint">Ctrl+H</span></div>
-            <div class="dropdown-item" id="menu-goto">برو به خط... <span class="shortcut-hint">Ctrl+G</span></div>
-            <div class="dropdown-divider"></div>
-            <div class="dropdown-item" id="menu-select-all">انتخاب همه <span class="shortcut-hint">Ctrl+A</span></div>
-            <div class="dropdown-item" id="menu-insert-date">درج تاریخ/ساعت <span class="shortcut-hint">F5</span></div>
-            <div class="dropdown-divider"></div>
-            <div class="dropdown-item" id="menu-rename">تغییر نام فایل <span class="shortcut-hint">F2</span></div>
+        <!-- منوی ویرایش -->
+        <div class="menu-item" id="root-menu-edit">
+            <span class="menu-title">ویرایش</span>
+            <div class="dropdown">
+                <div class="dropdown-item" id="menu-undo">واگرد <span class="shortcut-hint">Ctrl+Z</span></div>
+                <div class="dropdown-item" id="menu-redo">مجدد <span class="shortcut-hint">Ctrl+Y</span></div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" id="menu-find">جستجو <span class="shortcut-hint">Ctrl+F</span></div>
+                <div class="dropdown-item" id="menu-replace">جایگزینی <span class="shortcut-hint">Ctrl+H</span></div>
+                <div class="dropdown-item" id="menu-goto">برو به خط... <span class="shortcut-hint">Ctrl+G</span></div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" id="menu-select-all">انتخاب همه <span class="shortcut-hint">Ctrl+A</span></div>
+                <div class="dropdown-item" id="menu-insert-date">درج تاریخ/ساعت <span class="shortcut-hint">F5</span></div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" id="menu-rename">تغییر نام فایل <span class="shortcut-hint">F2</span></div>
+            </div>
         </div>
-    </div>
-    <div class="menu-item" id="root-menu-view">
-        <span class="menu-title">نمایش</span>
-        <div class="dropdown">
-            <div class="dropdown-item" id="menu-zoom-in">بزرگنمایی <span class="shortcut-hint">Ctrl++</span></div>
-            <div class="dropdown-item" id="menu-zoom-out">کوچکنمایی <span class="shortcut-hint">Ctrl+-</span></div>
-            <div class="dropdown-item" id="menu-zoom-reset">تنظیم پیش‌فرض <span class="shortcut-hint">Ctrl+0</span></div>
-            <div class="dropdown-divider"></div>
-            <div class="dropdown-item" id="menu-word-wrap">شکستن خودکار خطوط</div>
-            <div class="dropdown-item" id="menu-toggle-lines">نمایش شماره خطوط</div>
-            <div class="dropdown-item" id="menu-toggle-status">نمایش نوار وضعیت</div>
+        <!-- منوی نمایش -->
+        <div class="menu-item" id="root-menu-view">
+            <span class="menu-title">نمایش</span>
+            <div class="dropdown">
+                <div class="dropdown-item" id="menu-zoom-in">بزرگنمایی <span class="shortcut-hint">Ctrl++</span></div>
+                <div class="dropdown-item" id="menu-zoom-out">کوچکنمایی <span class="shortcut-hint">Ctrl+-</span></div>
+                <div class="dropdown-item" id="menu-zoom-reset">تنظیم پیش‌فرض <span class="shortcut-hint">Ctrl+0</span></div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" id="menu-word-wrap">شکستن خودکار خطوط</div>
+                <div class="dropdown-item" id="menu-toggle-lines">نمایش شماره خطوط</div>
+                <div class="dropdown-item" id="menu-toggle-status">نمایش نوار وضعیت</div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" id="menu-toggle-editor-dir">تغییر جهت ویرایشگر <span class="shortcut-hint">Ctrl+Shift+R</span></div>
+            </div>
         </div>
-    </div>
-    <div class="menu-item" id="root-menu-settings">
-        <span class="menu-title">تنظیمات</span>
-        <div class="dropdown" id="settings-dropdown">
-            <div class="dropdown-item" data-setting="font">فونت: <span id="settings-font-display">Vazir</span></div>
-            <div class="dropdown-item" data-setting="fontsize">اندازه فونت: <span id="settings-fontsize-display">۱۴</span></div>
-            <div class="dropdown-item" data-setting="lineheight">فاصله خطوط: <span id="settings-lineheight-display">۱.۵</span></div>
-            <div class="dropdown-divider"></div>
-            <div class="dropdown-item" data-setting="lang">زبان: <span id="settings-lang-display">فارسی</span></div>
-            <div class="dropdown-item" data-setting="theme">تم: <span id="settings-theme-display">تاریک</span></div>
+        <!-- منوی تنظیمات (کشویی) -->
+        <div class="menu-item" id="root-menu-settings">
+            <span class="menu-title">تنظیمات</span>
+            <div class="dropdown" id="settings-dropdown">
+                <div class="dropdown-item" data-setting="font">فونت: <span id="settings-font-display">Vazir</span></div>
+                <div class="dropdown-item" data-setting="fontsize">اندازه فونت: <span id="settings-fontsize-display">۱۴</span></div>
+                <div class="dropdown-item" data-setting="lineheight">فاصله خطوط: <span id="settings-lineheight-display">۱.۵</span></div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" data-setting="lang">زبان: <span id="settings-lang-display">فارسی</span></div>
+                <div class="dropdown-item" data-setting="theme">تم: <span id="settings-theme-display">تاریک</span></div>
+            </div>
         </div>
-    </div>
-    <div class="menu-item" id="theme-toggle-btn" style="margin-right: auto;">
-        <span id="theme-icon">🌙</span>
-    </div>
-    <div class="menu-item" id="lang-toggle-btn">
-        <span id="lang-label">فا</span>
-    </div>
-    <div class="menu-item" id="root-menu-help">
-        <span class="menu-title">راهنما</span>
-        <div class="dropdown">
-            <div class="dropdown-item" id="menu-about">درباره Notepad</div>
+        <!-- منوی راهنما (قبل از دکمه‌ها) -->
+        <div class="menu-item" id="root-menu-help">
+            <span class="menu-title">راهنما</span>
+            <div class="dropdown">
+                <div class="dropdown-item" id="menu-about">درباره Notepad</div>
+            </div>
         </div>
+        <!-- دکمه‌های تم و زبان (در انتها) -->
+        <button class="menu-btn" id="theme-toggle-btn" title="تغییر تم">
+            <span id="theme-icon">🌙</span>
+        </button>
+        <button class="menu-btn" id="lang-toggle-btn" title="تغییر زبان">
+            <span id="lang-label">فا</span>
+        </button>
     </div>
-</div>
 
     <div class="workspace">
+        <!-- پنل جستجو -->
         <div class="search-panel" id="search-panel">
             <div class="search-row">
                 <input type="text" id="find-input" class="input-field" placeholder="جستجو..." style="flex-grow: 1;">
+                <button class="btn" id="search-btn">جستجو</button>
                 <button class="btn" id="find-prev-btn" title="قبلی">↑</button>
                 <button class="btn" id="find-next-btn" title="بعدی">↓</button>
                 <button class="btn" id="close-search-btn" title="بستن">✕</button>
@@ -611,7 +655,9 @@
         </div>
 
         <div class="editor-container">
-            <div class="gutter" id="gutter">1</div>
+            <div class="gutter-wrapper" id="gutter-wrapper" style="display: block;">
+                <div class="gutter" id="gutter">1</div>
+            </div>
             <textarea class="editor word-wrap" id="editor" spellcheck="false" placeholder="تایپ کنید..."></textarea>
         </div>
     </div>
@@ -629,7 +675,7 @@
     </div>
 </div>
 
-<!-- Modals -->
+<!-- مودال‌ها -->
 <div class="modal" id="modal-about">
     <div class="dialog">
         <div class="dialog-header">درباره Notepad وب</div>
@@ -641,37 +687,6 @@
         </div>
         <div class="dialog-footer">
             <button class="btn btn-primary modal-close-btn">بستن</button>
-        </div>
-    </div>
-</div>
-
-<div class="modal" id="modal-settings">
-    <div class="dialog">
-        <div class="dialog-header">تنظیمات وب‌اپ</div>
-        <div class="dialog-body">
-            <div class="input-group">
-                <label id="setting-font-label">فونت ویرایشگر</label>
-                <select id="setting-font" class="input-field"></select>
-            </div>
-            <div class="input-group">
-                <label id="setting-fontsize-label">اندازه فونت (پیکسل)</label>
-                <input type="number" id="setting-fontsize" class="input-field" min="10" max="48" value="14">
-            </div>
-            <div class="input-group">
-                <label id="setting-lineheight-label">فاصله بین خطوط</label>
-                <input type="number" id="setting-lineheight" class="input-field" min="1" max="3" step="0.1" value="1.5">
-            </div>
-            <div class="input-group">
-                <label id="setting-lang-label">زبان برنامه</label>
-                <select id="setting-lang" class="input-field">
-                    <option value="fa">فارسی (FA)</option>
-                    <option value="en">English (EN)</option>
-                </select>
-            </div>
-        </div>
-        <div class="dialog-footer">
-            <button class="btn btn-primary" id="save-settings-btn">ذخیره تنظیمات</button>
-            <button class="btn modal-close-btn">لغو</button>
         </div>
     </div>
 </div>
