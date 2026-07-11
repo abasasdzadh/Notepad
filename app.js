@@ -162,7 +162,6 @@ function init() {
     applySettingsStyles();
     applyLocalization(state.lang);
     
-    // لود تب‌های ذخیره شده در حافظه مرورگر در زمان لود اولیه PWA
     loadTabsFromStorage();
     
     if (state.tabs.length === 0) {
@@ -191,7 +190,6 @@ function loadSettings() {
     if (saved) try { state = { ...state, ...JSON.parse(saved) }; } catch(e) {}
 }
 
-// ذخیره‌سازی ابری محلی تب‌ها جهت جلوگیری از پاک شدن اطلاعات هنگام رفرش
 function saveTabsToStorage() {
     const cleanTabs = state.tabs.map(t => ({
         id: t.id,
@@ -450,7 +448,6 @@ function setupSettingsDropdown() {
             const setting = item.dataset.setting;
             switch(setting) {
                 case 'font': {
-                    // در زمان فارسی بودن برنامه، انتخاب فونت روی وزیر قفل می‌شود
                     if (state.lang === 'fa') {
                         state.fontFamily = "'Vazir', sans-serif";
                     } else {
@@ -690,7 +687,7 @@ function registerEvents() {
 
     document.getElementById('add-tab').addEventListener('click', () => createNewTab());
 
-    // منوهای کشویی (اصلاح منطق باز شدن بدون ایجاد کراش یا تداخل)
+    // منوهای کشویی
     let activeDropdown = null;
     document.querySelectorAll('.menubar .menu-item').forEach(root => {
         const dd = root.querySelector('.dropdown');
