@@ -315,83 +315,55 @@ function applySettingsStyles() {
     updateGutter();
 }
 
-// متد هوشمند محاسبه اندازه هر خانه شماره خط متناسب با اندازه و کلمات شکسته شده (Word Wrap)
+/* ========== CHANGE: تابع شماره گذاری خطوط با روش جدید و بدون خطای انباشت ========== */
 function updateGutter() {
-
     if (!state.showLines) return;
-
-    const lines = editor.value.split("\n");
-
-    let mirror = document.getElementById("textarea-mirror");
-
+    const lines = editor.value.split('\n');
+    
+    let mirror = document.getElementById('textarea-mirror');
     if (!mirror) {
-
-        mirror = document.createElement("div");
-
-        mirror.id = "textarea-mirror";
-
+        mirror = document.createElement('div');
+        mirror.id = 'textarea-mirror';
+        mirror.style.position = 'absolute';
+        mirror.style.visibility = 'hidden';
+        mirror.style.top = '-9999px';
+        mirror.style.left = '-9999px';
+        mirror.style.boxSizing = 'border-box';
         document.body.appendChild(mirror);
-
     }
-
-    const s = getComputedStyle(editor);
-
-    mirror.style.position = "absolute";
-    mirror.style.visibility = "hidden";
-    mirror.style.left = "-99999px";
-    mirror.style.top = "0";
-
-    mirror.style.whiteSpace = state.wordWrap ? "pre-wrap" : "pre";
-
-    mirror.style.wordBreak = "break-word";
-
-    mirror.style.overflowWrap = "break-word";
-
-    mirror.style.fontFamily = s.fontFamily;
-
-    mirror.style.fontSize = s.fontSize;
-
-    mirror.style.fontWeight = s.fontWeight;
-
-    mirror.style.fontStyle = s.fontStyle;
-
-    mirror.style.letterSpacing = s.letterSpacing;
-
-    mirror.style.lineHeight = s.lineHeight;
-
-    mirror.style.padding = s.padding;
-
-    mirror.style.border = s.border;
-
-    mirror.style.boxSizing = s.boxSizing;
-
-    mirror.style.width = editor.clientWidth + "px";
-
-    let html = "";
-
-    for (let i = 0; i < lines.length; i++) {
-
-        mirror.textContent = lines[i] || " ";
-
-        const h = mirror.scrollHeight;
-
-        html += `
-        <div
-            style="
-                height:${h}px;
-                display:flex;
-                align-items:flex-start;
-                justify-content:center;
-            ">
-            ${i + 1}
-        </div>`;
-    }
-
+    
+    const styles = window.getComputedStyle(editor);
+    mirror.style.whiteSpace = styles.whiteSpace;
+    mirror.style.wordBreak = styles.wordBreak;
+    mirror.style.wordWrap = styles.wordWrap;
+    mirror.style.fontFamily = styles.fontFamily;
+    mirror.style.fontSize = styles.fontSize;
+    mirror.style.lineHeight = styles.lineHeight;
+    mirror.style.padding = styles.padding; // برای هماهنگی کامل با پدینگ ادیتور
+    
+    const paddingLeft = parseFloat(styles.paddingLeft) || 0;
+    const paddingRight = parseFloat(styles.paddingRight) || 0;
+    const innerWidth = editor.clientWidth - paddingLeft - paddingRight;
+    mirror.style.width = innerWidth + 'px';
+    
+    let html = '';
+    let accumulatedTop = 0;
+    
+    lines.forEach((lineText, idx) => {
+        const cleanText = lineText === '' ? ' ' : lineText;
+        mirror.textContent = cleanText;
+        const lineHeightPx = mirror.offsetHeight;
+        
+        // کلید حل مشکل: استفاده از position: absolute و top به جای height محاسباتی
+        html += `<div class="line-num" style="top: ${accumulatedTop + 10}px;">${idx + 1}</div>`;
+        
+        accumulatedTop += lineHeightPx;
+    });
+    
     gutter.innerHTML = html;
-
-    gutterWrapper.scrollTop = Math.round(editor.scrollTop);
-
+    gutter.style.height = Math.max(accumulatedTop, editor.scrollHeight) + 'px';
 }
+/* ======================== پایان تغییرات تابع ======================== */
 
 function updateStatusBar() {
     const t = locales[state.lang];
@@ -749,7 +721,19 @@ function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 function registerEvents() {
     setupDragDrop();
 
-    editor.addEventListener('scroll', () => gutterWrapper.scrollTop = editor.scrollTop);
+    /* ========== CHANGE: رویداد اسکرول ادیتور برای رفع لگ در موبایل ========== */
+    let isScrolling = false;
+    editor.addEventListener('scroll', () => {
+        if (!isScrolling) {
+            window.requestAnimationFrame(() => {
+                gutterWrapper.scrollTop = editor.scrollTop;
+                isScrolling = false;
+            });
+            isScrolling = true;
+        }
+    });
+    /* ======================== پایان تغییرات اسکرول ======================== */
+
     editor.addEventListener('input', handleTyping);
     editor.addEventListener('keyup', updateStatusBar);
     editor.addEventListener('click', updateStatusBar);
