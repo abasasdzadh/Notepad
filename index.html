@@ -245,6 +245,7 @@
             flex-shrink: 0;
         }
         [dir="rtl"] .gutter-wrapper { border-left: none; border-right: 1px solid var(--border-color); }
+        
         .gutter {
             font-family: var(--font-family) !important;
             font-size: var(--font-size) !important;
@@ -261,10 +262,10 @@
             bottom: 0;
         }
         .gutter div {
-            height: calc(var(--font-size) * var(--line-height));
             display: flex;
             align-items: center;
             justify-content: center;
+            box-sizing: border-box;
         }
 
         .editor {
@@ -286,18 +287,22 @@
         .editor.word-wrap { white-space: pre-wrap; word-wrap: break-word; }
         .editor:not(.word-wrap) { white-space: pre; overflow-x: auto; }
 
+        /* نوار وضعیت ظریف و دسکتاپی تک خطه */
         .statusbar {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             background-color: var(--status-bg);
             border-top: 1px solid var(--border-color);
-            padding: 6px 14px;
-            font-size: 12px;
+            padding: 4px 14px;
+            font-size: 11.5px;
             color: var(--text-color);
-            flex-wrap: wrap;
-            gap: 8px;
+            white-space: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none;
         }
-        .statusbar-section { display: flex; gap: 16px; }
+        .statusbar::-webkit-scrollbar { display: none; }
+        .statusbar-section { display: flex; gap: 14px; align-items: center; }
 
         .modal {
             display: none;
@@ -382,7 +387,6 @@
             box-shadow: 0 0 0 2px rgba(0, 103, 184, 0.2);
         }
 
-        /* پنل جستجو و جایگزینی با چیدمان ریسپانسیو جدید */
         .search-panel {
             display: none;
             position: absolute;
@@ -412,8 +416,17 @@
             min-width: 130px;
         }
 
-        /* بهینه‌سازی اختصاصی پنل جستجو برای موبایل */
+        /* بهینه‌سازی ریسپانسیو و پیشگیری از بریدگی منوها در لبه‌های موبایل */
         @media (max-width: 600px) {
+            .menu-item {
+                position: static; /* تغییر مرجع موقعیت‌دهی دراپ‌دان به کل نوار منو */
+            }
+            .dropdown {
+                left: 12px !important;
+                right: 12px !important;
+                width: calc(100% - 24px) !important;
+                min-width: 0 !important;
+            }
             .search-panel {
                 top: 0 !important; 
                 left: 0 !important; 
@@ -430,14 +443,19 @@
             }
             .search-row .btn {
                 padding: 6px 10px;
-                font-size: 12px;
+                font-size: 11.5px;
             }
             .input-field {
                 padding: 6px 10px;
-                font-size: 12.5px;
+                font-size: 12px;
             }
-            .statusbar { flex-direction: column; align-items: center; text-align: center; }
-            .statusbar-section { width: 100%; justify-content: center; }
+            .statusbar {
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+            .statusbar-section {
+                gap: 8px;
+            }
         }
 
         @media print {
@@ -537,7 +555,6 @@
     </div>
 
     <div class="workspace">
-        <!-- پنل جستجو و جایگزینی با دکمه بستن و چیدمان ریسپانسیو -->
         <div class="search-panel" id="search-panel">
             <div class="search-row">
                 <input type="text" id="find-input" class="input-field" placeholder="جستجو...">
@@ -552,7 +569,7 @@
                 <button class="btn" id="replace-all-btn">همه</button>
             </div>
             <div style="font-size: 11px; display: flex; gap: 10px; align-items: center; justify-content: space-between; width: 100%; margin-top: 2px;">
-                <label id="match-case-label" style="cursor: pointer; display: flex; gap: 6px; align-items: center;">
+                <label id="match-case-label" style="cursor: pointer; display: flex; gap: 4px; align-items: center;">
                     <input type="checkbox" id="match-case-chk"> تطابق بزرگی/کوچکی حروف
                 </label>
                 <span id="search-results-count" style="font-weight: bold; opacity: 0.85;">0/0</span>
