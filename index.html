@@ -1,3 +1,4 @@
+<!-- START OF FILE Notepad-main/index.html -->
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -46,6 +47,7 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-vazir); user-select: none; }
         body, html { height: 100%; overflow: hidden; background-color: var(--bg-app); color: var(--text-color); transition: background-color 0.25s, color 0.25s; }
+        
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(128, 128, 128, 0.3); border-radius: 4px; }
@@ -128,13 +130,15 @@
         }
         .add-tab-btn:hover { background-color: var(--bg-hover); }
 
+        /* اصلاح هدر منو برای باز شدن صحیح منوها در لایه‌بندی بالا */
         .menubar {
             display: flex;
             align-items: center;
             background-color: var(--bg-menu);
             border-bottom: 1px solid var(--border-color);
             padding: 2px 8px;
-            z-index: 10;
+            position: relative; /* موقعیت‌دهی جهت اعمال صحیح z-index */
+            z-index: 150;       /* تضمین قرارگیری بازشونده‌ها روی بدنه ادیتور */
             white-space: nowrap;
             gap: 2px;
         }
