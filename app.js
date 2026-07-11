@@ -585,6 +585,7 @@ function replaceCurrent() {
     performSearch();
 }
 
+// همه
 function replaceAll() {
     const query = findInput.value;
     if (!query) return;
