@@ -929,5 +929,5 @@ if ('serviceWorker' in navigator) {
         .catch(err => console.error('SW registration failed:', err));
 }
 
-// شروع و راه‌اندازی برنامه
+// شپروع و راه‌اندازی برنامه
 init();
