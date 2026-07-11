@@ -169,7 +169,6 @@
         [dir="ltr"] .dropdown { left: 0; right: auto; }
         .menu-item.active .dropdown { display: block; }
 
-        /* تراز هوشمند ضدسرریز برای لبه‌های بیرونی نمایشگر در موبایل و دسکتاپ */
         [dir="rtl"] #root-menu-help .dropdown,
         [dir="rtl"] #settings-dropdown {
             left: 0;
@@ -246,6 +245,8 @@
             overflow: hidden;
             position: relative;
         }
+
+        /* ========== CHANGE: CSS مربوط به شماره خطوط کاملا اصلاح شد ========== */
         .gutter-wrapper {
             position: relative;
             width: 50px;
@@ -258,24 +259,26 @@
         }
         [dir="rtl"] .gutter-wrapper { border-left: none; border-right: 1px solid var(--border-color); }
         
-        /* اصلاح کامل سایدبار برای فعال‌سازی نامحدود ارتفاع عمودی */
         .gutter {
             width: 100%;
+            position: relative; /* برای موقعیت‌دهی مطلق خطوط استفاده می‌شود */
             font-family: var(--font-family) !important;
             font-size: var(--font-size) !important;
             line-height: var(--line-height) !important;
-            text-align: center;
-            color: #858585;
             padding: 10px 0;
             box-sizing: border-box;
-            display: block; /* حذف مطلق بودن جهت فراهم شدن اسکرول آزاد */
         }
-        .gutter div {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .gutter .line-num {
+            position: absolute; /* کلید اصلی حل مشکل انباشت خطا */
+            right: 0;
+            width: 100%;
+            text-align: center;
+            color: #858585;
             box-sizing: border-box;
+            pointer-events: none;
         }
+        [dir="ltr"] .gutter .line-num { right: auto; left: 0; }
+        /* ======================== پایان تغییرات CSS ======================== */
 
         .editor {
             flex-grow: 1;
@@ -296,7 +299,6 @@
         .editor.word-wrap { white-space: pre-wrap; word-wrap: break-word; }
         .editor:not(.word-wrap) { white-space: pre; overflow-x: auto; }
 
-        /* نوار وضعیت ظریف و دسکتاپی تک خطه */
         .statusbar {
             display: flex;
             justify-content: space-between;
@@ -426,7 +428,6 @@
         }
 
         @media (max-width: 600px) {
-            /* منوها در نسخه موبایل به فرم ستونی و کلاسیک (همانند ورژن‌های قبلی و دسکتاپی) حفظ خواهند شد */
             .search-panel {
                 top: 0 !important; 
                 left: 0 !important; 
@@ -555,7 +556,7 @@
     </div>
 
     <div class="workspace">
-        <!-- پنل جستجو و جایگزینی با دکمه بستن و چیدمان ریسپانسیو -->
+        <!-- پنل جستجو و جایگزینی -->
         <div class="search-panel" id="search-panel">
             <div class="search-row">
                 <input type="text" id="find-input" class="input-field" placeholder="جستجو...">
