@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notepad</title>
+    <title>Notepad PWA</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#202020">
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet" type="text/css" />
@@ -44,42 +44,14 @@
             --dialog-bg: #2b2b2b;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: var(--font-vazir);
-            user-select: none;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-vazir); user-select: none; }
+        body, html { height: 100%; overflow: hidden; background-color: var(--bg-app); color: var(--text-color); transition: background-color 0.25s, color 0.25s; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(128, 128, 128, 0.3); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(128, 128, 128, 0.5); }
 
-        body, html {
-            height: 100%;
-            overflow: hidden;
-            background-color: var(--bg-app);
-            color: var(--text-color);
-            transition: background-color 0.25s, color 0.25s;
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(128, 128, 128, 0.3);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(128, 128, 128, 0.5);
-        }
-
-        .window {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
+        .window { display: flex; flex-direction: column; height: 100vh; }
 
         .titlebar {
             display: flex;
@@ -89,7 +61,6 @@
             gap: 10px;
             border-bottom: 1px solid var(--border-color);
         }
-
         .tab-container {
             display: flex;
             align-items: flex-end;
@@ -98,10 +69,7 @@
             flex-grow: 1;
             scrollbar-width: none;
         }
-        .tab-container::-webkit-scrollbar {
-            display: none;
-        }
-
+        .tab-container::-webkit-scrollbar { display: none; }
         .tab {
             display: flex;
             align-items: center;
@@ -118,24 +86,18 @@
             justify-content: space-between;
             transition: all 0.2s ease;
         }
-
         .tab.active {
             background-color: var(--bg-active-tab);
             border-color: var(--border-color);
             box-shadow: 0 -2px 6px rgba(0,0,0,0.04);
         }
-
-        .tab:hover:not(.active) {
-            background-color: var(--bg-hover);
-        }
-
+        .tab:hover:not(.active) { background-color: var(--bg-hover); }
         .tab-title {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             flex-grow: 1;
         }
-
         .tab-close {
             background: none;
             border: none;
@@ -151,11 +113,7 @@
             opacity: 0.7;
             transition: all 0.2s;
         }
-
-        .tab-close:hover {
-            background-color: var(--bg-hover);
-            opacity: 1;
-        }
+        .tab-close:hover { background-color: var(--bg-hover); opacity: 1; }
 
         .add-tab-btn {
             background: none;
@@ -168,24 +126,18 @@
             margin-bottom: 4px;
             transition: background-color 0.2s;
         }
-
-        .add-tab-btn:hover {
-            background-color: var(--bg-hover);
-        }
+        .add-tab-btn:hover { background-color: var(--bg-hover); }
 
         .menubar {
             display: flex;
+            align-items: center;
             background-color: var(--bg-menu);
             border-bottom: 1px solid var(--border-color);
             padding: 2px 8px;
             z-index: 10;
             white-space: nowrap;
-            align-items: center;
+            gap: 2px;
         }
-        .menubar::-webkit-scrollbar {
-            display: none;
-        }
-
         .menu-item {
             position: relative;
             padding: 6px 14px;
@@ -194,10 +146,7 @@
             border-radius: 6px;
             transition: background-color 0.2s;
         }
-
-        .menu-item:hover {
-            background-color: var(--bg-hover);
-        }
+        .menu-item:hover { background-color: var(--bg-hover); }
 
         .dropdown {
             display: none;
@@ -213,19 +162,9 @@
             max-height: 300px;
             overflow-y: auto;
         }
-
-        [dir="rtl"] .dropdown {
-            right: 0;
-            left: auto;
-        }
-        [dir="ltr"] .dropdown {
-            left: 0;
-            right: auto;
-        }
-
-        .menu-item.active .dropdown {
-            display: block;
-        }
+        [dir="rtl"] .dropdown { right: 0; left: auto; }
+        [dir="ltr"] .dropdown { left: 0; right: auto; }
+        .menu-item.active .dropdown { display: block; }
 
         .dropdown-item {
             display: flex;
@@ -234,20 +173,14 @@
             padding: 8px 16px;
             font-size: 13px;
             color: var(--text-color);
-            text-decoration: none;
             transition: background-color 0.15s;
         }
-
-        .dropdown-item:hover {
-            background-color: var(--bg-hover);
-        }
-
+        .dropdown-item:hover { background-color: var(--bg-hover); }
         .dropdown-divider {
             height: 1px;
             background-color: var(--border-color);
             margin: 6px 0;
         }
-
         .shortcut-hint {
             opacity: 0.5;
             font-size: 11px;
@@ -255,7 +188,6 @@
             font-family: var(--font-mono);
         }
 
-        /* دکمه‌های تم و زبان در نوار منو */
         .menu-btn {
             background: none;
             border: none;
@@ -266,9 +198,24 @@
             border-radius: 6px;
             transition: background-color 0.2s;
         }
-        .menu-btn:hover {
-            background-color: var(--bg-hover);
+        .menu-btn:hover { background-color: var(--bg-hover); }
+
+        .install-btn {
+            background: var(--accent-color);
+            color: #fff;
+            border: none;
+            padding: 4px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0 4px;
         }
+        .install-btn:hover { background: var(--accent-hover); }
+        .install-btn.hidden { display: none; }
 
         .workspace {
             display: flex;
@@ -277,7 +224,6 @@
             overflow: hidden;
             background-color: var(--bg-editor);
         }
-
         .editor-container {
             display: flex;
             width: 100%;
@@ -285,8 +231,6 @@
             overflow: hidden;
             position: relative;
         }
-
-        /* گاتر جدید با موقعیت‌یابی مطلق و هماهنگ با خطوط */
         .gutter-wrapper {
             position: relative;
             width: 50px;
@@ -297,11 +241,7 @@
             user-select: none;
             flex-shrink: 0;
         }
-        [dir="rtl"] .gutter-wrapper {
-            border-left: none;
-            border-right: 1px solid var(--border-color);
-        }
-
+        [dir="rtl"] .gutter-wrapper { border-left: none; border-right: 1px solid var(--border-color); }
         .gutter {
             font-family: var(--font-family) !important;
             font-size: var(--font-size) !important;
@@ -340,16 +280,8 @@
             font-size: var(--font-size) !important;
             line-height: var(--line-height) !important;
         }
-
-        .editor.word-wrap {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
-        .editor:not(.word-wrap) {
-            white-space: pre;
-            overflow-x: auto;
-        }
+        .editor.word-wrap { white-space: pre-wrap; word-wrap: break-word; }
+        .editor:not(.word-wrap) { white-space: pre; overflow-x: auto; }
 
         .statusbar {
             display: flex;
@@ -362,19 +294,13 @@
             flex-wrap: wrap;
             gap: 8px;
         }
-
-        .statusbar-section {
-            display: flex;
-            gap: 16px;
-        }
+        .statusbar-section { display: flex; gap: 16px; }
 
         .modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
             background-color: var(--modal-bg);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
@@ -382,7 +308,6 @@
             align-items: center;
             z-index: 1000;
         }
-
         .dialog {
             background-color: var(--dialog-bg);
             border: 1px solid var(--border-color);
@@ -393,31 +318,13 @@
             padding: 24px;
             animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
         @keyframes fadeIn {
             from { transform: scale(0.95); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
-
-        .dialog-header {
-            font-weight: 600;
-            font-size: 17px;
-            margin-bottom: 18px;
-        }
-
-        .dialog-body {
-            font-size: 14px;
-            margin-bottom: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .dialog-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
+        .dialog-header { font-weight: 600; font-size: 17px; margin-bottom: 18px; }
+        .dialog-body { font-size: 14px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 14px; }
+        .dialog-footer { display: flex; justify-content: flex-end; gap: 10px; }
 
         .btn {
             padding: 8px 18px;
@@ -430,33 +337,16 @@
             font-weight: 500;
             transition: all 0.2s ease;
         }
-
-        .btn:active {
-            transform: scale(0.97);
-        }
-
+        .btn:active { transform: scale(0.97); }
         .btn-primary {
             background-color: var(--accent-color);
             color: #ffffff;
             border: none;
         }
+        .btn-primary:hover { background-color: var(--accent-hover); }
 
-        .btn-primary:hover {
-            background-color: var(--accent-hover);
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .input-group label {
-            font-size: 12.5px;
-            font-weight: 500;
-            opacity: 0.9;
-        }
-
+        .input-group { display: flex; flex-direction: column; gap: 6px; }
+        .input-group label { font-size: 12.5px; font-weight: 500; opacity: 0.9; }
         .input-field {
             padding: 8px 12px;
             border-radius: 6px;
@@ -466,7 +356,6 @@
             outline: none;
             transition: all 0.2s;
         }
-
         .input-field:focus {
             border-color: var(--accent-color);
             box-shadow: 0 0 0 2px rgba(0, 103, 184, 0.2);
@@ -486,66 +375,33 @@
             gap: 10px;
             width: 380px;
             max-width: calc(100% - 24px);
-            transition: all 0.3s ease;
         }
-
-        [dir="rtl"] .search-panel {
-            left: 12px;
-            right: auto;
-        }
-        [dir="ltr"] .search-panel {
-            right: 12px;
-            left: auto;
-        }
-
-        .search-row {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .search-row .btn {
-            flex-shrink: 0;
-        }
+        [dir="rtl"] .search-panel { left: 12px; right: auto; }
+        [dir="ltr"] .search-panel { right: 12px; left: auto; }
+        .search-row { display: flex; gap: 8px; align-items: center; }
+        .search-row .btn { flex-shrink: 0; }
 
         @media (max-width: 768px) {
-            .statusbar {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-            }
-            .statusbar-section {
-                width: 100%;
-                justify-content: center;
-            }
+            .statusbar { flex-direction: column; align-items: center; text-align: center; }
+            .statusbar-section { width: 100%; justify-content: center; }
             .search-panel {
-                top: 0;
-                left: 0 !important;
-                right: 0 !important;
-                width: 100%;
-                max-width: 100%;
+                top: 0; left: 0 !important; right: 0 !important;
+                width: 100%; max-width: 100%;
                 border-radius: 0;
-                border-left: none;
-                border-right: none;
+                border-left: none; border-right: none;
             }
         }
-
         @media print {
-            body * {
-                visibility: hidden;
-            }
+            body * { visibility: hidden; }
             .workspace, .editor-container, #editor {
                 visibility: visible !important;
                 position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                height: 100%;
+                left: 0; top: 0;
+                width: 100%; height: 100%;
                 background: #ffffff !important;
                 color: #000000 !important;
             }
-            .titlebar, .menubar, .statusbar, .gutter-wrapper, .search-panel, .modal {
-                display: none !important;
-            }
+            .titlebar, .menubar, .statusbar, .gutter-wrapper, .search-panel, .modal { display: none !important; }
         }
     </style>
 </head>
@@ -558,7 +414,7 @@
     </div>
 
     <div class="menubar" id="menubar">
-        <!-- منوی فایل -->
+        <!-- فایل -->
         <div class="menu-item" id="root-menu-file">
             <span class="menu-title">فایل</span>
             <div class="dropdown">
@@ -571,7 +427,7 @@
                 <div class="dropdown-item" id="menu-close">بستن تب <span class="shortcut-hint">Ctrl+W</span></div>
             </div>
         </div>
-        <!-- منوی ویرایش -->
+        <!-- ویرایش -->
         <div class="menu-item" id="root-menu-edit">
             <span class="menu-title">ویرایش</span>
             <div class="dropdown">
@@ -588,7 +444,7 @@
                 <div class="dropdown-item" id="menu-rename">تغییر نام فایل <span class="shortcut-hint">F2</span></div>
             </div>
         </div>
-        <!-- منوی نمایش -->
+        <!-- نمایش -->
         <div class="menu-item" id="root-menu-view">
             <span class="menu-title">نمایش</span>
             <div class="dropdown">
@@ -603,7 +459,7 @@
                 <div class="dropdown-item" id="menu-toggle-editor-dir">تغییر جهت ویرایشگر <span class="shortcut-hint">Ctrl+Shift+R</span></div>
             </div>
         </div>
-        <!-- منوی تنظیمات (کشویی) -->
+        <!-- تنظیمات (کشویی) -->
         <div class="menu-item" id="root-menu-settings">
             <span class="menu-title">تنظیمات</span>
             <div class="dropdown" id="settings-dropdown">
@@ -615,20 +471,20 @@
                 <div class="dropdown-item" data-setting="theme">تم: <span id="settings-theme-display">تاریک</span></div>
             </div>
         </div>
-        <!-- منوی راهنما (قبل از دکمه‌ها) -->
+        <!-- راهنما -->
         <div class="menu-item" id="root-menu-help">
             <span class="menu-title">راهنما</span>
             <div class="dropdown">
                 <div class="dropdown-item" id="menu-about">درباره Notepad</div>
             </div>
         </div>
-        <!-- دکمه‌های تم و زبان (در انتها) -->
-        <button class="menu-btn" id="theme-toggle-btn" title="تغییر تم">
-            <span id="theme-icon">🌙</span>
-        </button>
-        <button class="menu-btn" id="lang-toggle-btn" title="تغییر زبان">
-            <span id="lang-label">فا</span>
-        </button>
+
+        <!-- دکمه نصب PWA -->
+        <button class="install-btn hidden" id="install-btn">📲 نصب</button>
+
+        <!-- دکمه‌های تم و زبان -->
+        <button class="menu-btn" id="theme-toggle-btn" title="تغییر تم"><span id="theme-icon">🌙</span></button>
+        <button class="menu-btn" id="lang-toggle-btn" title="تغییر زبان"><span id="lang-label">فا</span></button>
     </div>
 
     <div class="workspace">
@@ -655,7 +511,7 @@
         </div>
 
         <div class="editor-container">
-            <div class="gutter-wrapper" id="gutter-wrapper" style="display: block;">
+            <div class="gutter-wrapper" id="gutter-wrapper">
                 <div class="gutter" id="gutter">1</div>
             </div>
             <textarea class="editor word-wrap" id="editor" spellcheck="false" placeholder="تایپ کنید..."></textarea>
