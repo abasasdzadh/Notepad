@@ -162,12 +162,18 @@ function init() {
     applySettingsStyles();
     applyLocalization(state.lang);
     
-    if (state.tabs.length === 0) createNewTab();
-    else { renderTabs(); selectTab(state.tabs[0].id); }
+    // لود تب‌های ذخیره شده در حافظه مرورگر در زمان لود اولیه PWA
+    loadTabsFromStorage();
+    
+    if (state.tabs.length === 0) {
+        createNewTab();
+    } else {
+        renderTabs();
+        selectTab(state.activeTabId || state.tabs[0].id);
+    }
     
     registerEvents();
     startAutoSave();
-    loadAutoSavedContent();
 }
 
 function saveSettings() {
@@ -183,6 +189,39 @@ function saveSettings() {
 function loadSettings() {
     const saved = localStorage.getItem('notepad_pwa_settings');
     if (saved) try { state = { ...state, ...JSON.parse(saved) }; } catch(e) {}
+}
+
+// ذخیره‌سازی ابری محلی تب‌ها جهت جلوگیری از پاک شدن اطلاعات هنگام رفرش
+function saveTabsToStorage() {
+    const cleanTabs = state.tabs.map(t => ({
+        id: t.id,
+        title: t.title,
+        content: t.content,
+        path: t.path,
+        isDirty: t.isDirty
+    }));
+    localStorage.setItem('notepad_pwa_tabs', JSON.stringify(cleanTabs));
+    localStorage.setItem('notepad_pwa_active_tab_id', state.activeTabId);
+}
+
+function loadTabsFromStorage() {
+    const savedTabs = localStorage.getItem('notepad_pwa_tabs');
+    const savedActiveId = localStorage.getItem('notepad_pwa_active_tab_id');
+    if (savedTabs) {
+        try {
+            const parsed = JSON.parse(savedTabs);
+            state.tabs = parsed.map(t => ({
+                ...t,
+                history: [t.content],
+                historyIndex: 0
+            }));
+            if (savedActiveId && state.tabs.some(t => t.id === savedActiveId)) {
+                state.activeTabId = savedActiveId;
+            }
+        } catch(e) {
+            console.error("Failed to load tabs", e);
+        }
+    }
 }
 
 function applyLocalization(lang) {
@@ -325,11 +364,7 @@ function createNewTab(title = null, content = '', path = null) {
     state.tabs.push(tab);
     renderTabs();
     selectTab(id);
-    const saved = localStorage.getItem('notepad_autosave_' + id);
-    if (saved) {
-        const t = state.tabs.find(t => t.id === id);
-        if (t) { t.content = saved; editor.value = saved; t.history = [saved]; t.historyIndex = 0; updateGutter(); updateStatusBar(); }
-    }
+    saveTabsToStorage();
 }
 
 function renderTabs() {
@@ -363,6 +398,7 @@ function selectTab(id) {
     updateGutter();
     updateStatusBar();
     editor.focus();
+    saveTabsToStorage();
 }
 
 function closeTab(id) {
@@ -382,6 +418,7 @@ function closeTab(id) {
             selectTab(next.id);
         } else renderTabs();
     }
+    saveTabsToStorage();
 }
 
 function renameTab() {
@@ -394,6 +431,7 @@ function renameTab() {
         tab.isDirty = true;
         renderTabs();
         saveSettings();
+        saveTabsToStorage();
     }
 }
 
@@ -404,7 +442,7 @@ function toggleEditorDirection() {
     saveSettings();
 }
 
-// ---- منوی تنظیمات ----
+// ---- منوی تنظیمات مدرن دراپ‌دان زنده ----
 function setupSettingsDropdown() {
     document.querySelectorAll('#settings-dropdown .dropdown-item').forEach(item => {
         item.addEventListener('click', (e) => {
@@ -412,10 +450,15 @@ function setupSettingsDropdown() {
             const setting = item.dataset.setting;
             switch(setting) {
                 case 'font': {
-                    const fonts = ["'Vazir', sans-serif", "Consolas, monospace", "'Segoe UI', sans-serif"];
-                    let idx = fonts.indexOf(state.fontFamily);
-                    idx = (idx + 1) % fonts.length;
-                    state.fontFamily = fonts[idx];
+                    // در زمان فارسی بودن برنامه، انتخاب فونت روی وزیر قفل می‌شود
+                    if (state.lang === 'fa') {
+                        state.fontFamily = "'Vazir', sans-serif";
+                    } else {
+                        const fonts = ["Consolas, monospace", "'Segoe UI', sans-serif", "'Courier New', monospace"];
+                        let idx = fonts.indexOf(state.fontFamily);
+                        idx = (idx + 1) % fonts.length;
+                        state.fontFamily = fonts[idx];
+                    }
                     applySettingsStyles(); saveSettings(); break;
                 }
                 case 'fontsize': {
@@ -527,10 +570,12 @@ function startAutoSave() {
     if (autoSaveTimer) clearInterval(autoSaveTimer);
     autoSaveTimer = setInterval(() => {
         const tab = state.tabs.find(t => t.id === state.activeTabId);
-        if (tab) localStorage.setItem('notepad_autosave_' + tab.id, editor.value);
+        if (tab) {
+            localStorage.setItem('notepad_autosave_' + tab.id, editor.value);
+            saveTabsToStorage();
+        }
     }, 5000);
 }
-function loadAutoSavedContent() {}
 
 // ---- Drag & Drop ----
 function setupDragDrop() {
@@ -583,6 +628,7 @@ function triggerSave(saveAs = false) {
     URL.revokeObjectURL(url);
     tab.isDirty = false;
     renderTabs();
+    saveTabsToStorage();
 }
 
 // ---- تاریخچه (Undo/Redo) ----
@@ -605,6 +651,7 @@ function handleTyping() {
                 if (tab.history.length > 50) tab.history.shift();
                 tab.historyIndex = tab.history.length - 1;
             }
+            saveTabsToStorage();
         }, 500);
     }
 }
@@ -615,6 +662,7 @@ function triggerUndo() {
     editor.value = tab.history[tab.historyIndex];
     tab.content = editor.value;
     updateGutter(); updateStatusBar();
+    saveTabsToStorage();
 }
 function triggerRedo() {
     const tab = state.tabs.find(t => t.id === state.activeTabId);
@@ -623,6 +671,7 @@ function triggerRedo() {
     editor.value = tab.history[tab.historyIndex];
     tab.content = editor.value;
     updateGutter(); updateStatusBar();
+    saveTabsToStorage();
 }
 
 // ---- مودال‌ها ----
@@ -641,7 +690,7 @@ function registerEvents() {
 
     document.getElementById('add-tab').addEventListener('click', () => createNewTab());
 
-    // منوهای کشویی
+    // منوهای کشویی (اصلاح منطق باز شدن بدون ایجاد کراش یا تداخل)
     let activeDropdown = null;
     document.querySelectorAll('.menubar .menu-item').forEach(root => {
         const dd = root.querySelector('.dropdown');
@@ -667,7 +716,7 @@ function registerEvents() {
         activeDropdown = null;
     });
 
-    // دکمه‌های نوار منو
+    // دکمه‌های نوار منو مستقل
     document.getElementById('theme-toggle-btn').addEventListener('click', () => {
         state.theme = state.theme === 'dark' ? 'light' : 'dark';
         applyTheme(); saveSettings(); updateSettingsDisplay();
@@ -772,7 +821,7 @@ function registerEvents() {
         editor.focus();
     });
 
-    // کلیدهای میانبر
+    // کلیدهای میانبر استاندارد
     window.addEventListener('keydown', (e) => {
         if (e.ctrlKey) {
             const key = e.key.toLowerCase();
@@ -824,5 +873,5 @@ if ('serviceWorker' in navigator) {
         .catch(err => console.error('SW registration failed:', err));
 }
 
-// شروع برنامه
+// شروع و راه‌اندازی برنامه
 init();
