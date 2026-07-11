@@ -1,4 +1,4 @@
-// START OF FILE Notepad-main/app.js (نسخه نهایی)
+// START OF FILE Notepad-main/app.js
 
 const locales = {
     fa: {
@@ -28,6 +28,7 @@ const locales = {
         menuWordWrap: 'شکستن خودکار خطوط',
         menuToggleLines: 'نمایش شماره خطوط',
         menuToggleStatus: 'نمایش نوار وضعیت',
+        menuToggleEditorDir: 'تغییر جهت ویرایشگر',
         menuHelp: 'راهنما',
         menuAbout: 'درباره Notepad',
         findPlaceholder: 'جستجو...',
@@ -88,6 +89,7 @@ const locales = {
         menuWordWrap: 'Word Wrap',
         menuToggleLines: 'Show Line Numbers',
         menuToggleStatus: 'Show Status Bar',
+        menuToggleEditorDir: 'Toggle Editor Direction',
         menuHelp: 'Help',
         menuAbout: 'About Notepad',
         findPlaceholder: 'Find...',
@@ -135,11 +137,13 @@ let state = {
     fontSize: 14,
     lineHeight: 1.5,
     fontFamily: "'Vazir', sans-serif",
-    dir: 'rtl'
+    dir: 'rtl',          // جهت کلی برنامه
+    editorDir: 'rtl'     // جهت ویرایشگر (می‌تواند جدا از dir باشد)
 };
 
 const editor = document.getElementById('editor');
 const gutter = document.getElementById('gutter');
+const gutterWrapper = document.getElementById('gutter-wrapper');
 const tabContainer = document.getElementById('tab-container');
 const statusbar = document.getElementById('statusbar');
 const searchPanel = document.getElementById('search-panel');
@@ -154,7 +158,6 @@ let searchState = {
     currentIndex: -1,
     query: ''
 };
-let searchTimeout = null;
 
 let autoSaveTimer = null;
 
@@ -187,7 +190,8 @@ function saveSettings() {
         fontSize: state.fontSize,
         lineHeight: state.lineHeight,
         fontFamily: state.fontFamily,
-        dir: state.dir
+        dir: state.dir,
+        editorDir: state.editorDir
     }));
     updateSettingsDisplay();
 }
@@ -208,10 +212,13 @@ function applyLocalization(lang) {
     const t = locales[lang];
     if (!t) return;
 
+    // تنظیم جهت کلی برنامه بر اساس زبان
+    state.dir = t.dir;
     document.body.setAttribute('dir', state.dir);
     document.body.setAttribute('lang', t.lang);
     
-    if (state.dir === 'rtl') {
+    // اگر زبان فارسی است، فونت وزیر و اگر انگلیسی، فونت پیش‌فرض
+    if (lang === 'fa') {
         state.fontFamily = "'Vazir', sans-serif";
     } else if (state.fontFamily === "'Vazir', sans-serif") {
         state.fontFamily = "Consolas, monospace";
@@ -224,7 +231,6 @@ function applyLocalization(lang) {
     document.querySelector('#root-menu-help .menu-title').textContent = t.menuHelp;
     document.querySelector('#root-menu-settings .menu-title').textContent = t.settingsTitle;
 
-    // آیتم‌های منو
     updateMenuShortcut('menu-new', t.menuNew, 'Ctrl+N');
     updateMenuShortcut('menu-open', t.menuOpen, 'Ctrl+O');
     updateMenuShortcut('menu-save', t.menuSave, 'Ctrl+S');
@@ -242,6 +248,7 @@ function applyLocalization(lang) {
     updateMenuShortcut('menu-zoom-in', t.menuZoomIn, 'Ctrl++');
     updateMenuShortcut('menu-zoom-out', t.menuZoomOut, 'Ctrl+-');
     updateMenuShortcut('menu-zoom-reset', t.menuZoomReset, 'Ctrl+0');
+    updateMenuShortcut('menu-toggle-editor-dir', t.menuToggleEditorDir, 'Ctrl+Shift+R');
     document.getElementById('menu-about').textContent = t.menuAbout;
     updateToggleMenuTexts();
 
@@ -250,8 +257,9 @@ function applyLocalization(lang) {
     document.getElementById('replace-btn').textContent = t.findBtnReplace;
     document.getElementById('replace-all-btn').textContent = t.findBtnReplaceAll;
     document.getElementById('match-case-label').innerHTML = `<input type="checkbox" id="match-case-chk" ${matchCaseChk.checked ? 'checked' : ''}> ` + t.matchCaseLabel;
+    document.getElementById('search-btn').textContent = t.menuFind;
 
-    // درباره
+    // مودال درباره
     const aboutModal = document.getElementById('modal-about');
     aboutModal.querySelector('.dialog-header').textContent = t.modalAboutTitle;
     const aboutBodyPs = aboutModal.querySelectorAll('.dialog-body p');
@@ -271,6 +279,9 @@ function applyLocalization(lang) {
     editor.placeholder = lang === 'fa' ? 'تایپ کنید...' : 'Type here...';
     updateStatusBar();
     updateSettingsDisplay();
+    // تنظیم جهت ویرایشگر بر اساس زبان (اما کاربر می‌تواند آن را تغییر دهد)
+    state.editorDir = state.dir;
+    editor.style.direction = state.editorDir;
 }
 
 function updateMenuShortcut(id, text, shortcut) {
@@ -290,11 +301,7 @@ function updateToggleMenuTexts() {
 function applyTheme() {
     document.body.setAttribute('data-theme', state.theme);
     const icon = document.getElementById('theme-icon');
-    if (state.theme === 'dark') {
-        icon.textContent = '🌙';
-    } else {
-        icon.textContent = '☀️';
-    }
+    icon.textContent = state.theme === 'dark' ? '🌙' : '☀️';
 }
 
 function applySettingsStyles() {
@@ -309,7 +316,7 @@ function applySettingsStyles() {
         editor.classList.remove('word-wrap');
     }
 
-    gutter.style.display = state.showLines ? 'block' : 'none';
+    gutterWrapper.style.display = state.showLines ? 'block' : 'none';
     statusbar.style.display = state.showStatus ? 'flex' : 'none';
     updateGutter();
 }
@@ -323,7 +330,8 @@ function updateGutter() {
         html += `<div>${i}</div>`;
     }
     gutter.innerHTML = html;
-    gutter.scrollTop = editor.scrollTop;
+    // هماهنگ‌سازی اسکرول با اسکرول ادیتور
+    gutter.parentElement.scrollTop = editor.scrollTop;
 }
 
 function updateStatusBar() {
@@ -341,12 +349,11 @@ function updateStatusBar() {
         .replace('{chars}', charCount)
         .replace('{words}', words);
     document.getElementById('status-zoom').textContent = `${state.zoom}%`;
-    document.getElementById('status-direction').textContent = state.dir === 'rtl' ? t.statusDirection : 'LTR';
+    document.getElementById('status-direction').textContent = state.editorDir === 'rtl' ? t.statusDirection : 'LTR';
 }
 
 function updateSettingsDisplay() {
     const t = locales[state.lang];
-    // نمایش مقادیر فعلی در منوی تنظیمات
     const fontDisplay = document.getElementById('settings-font-display');
     if (fontDisplay) {
         const fontName = state.fontFamily.includes('Vazir') ? 'Vazir' :
@@ -354,18 +361,11 @@ function updateSettingsDisplay() {
                          state.fontFamily.includes('Segoe') ? 'Segoe UI' : 'Custom';
         fontDisplay.textContent = fontName;
     }
-    const fontSizeDisplay = document.getElementById('settings-fontsize-display');
-    if (fontSizeDisplay) fontSizeDisplay.textContent = state.fontSize;
-    const lineHeightDisplay = document.getElementById('settings-lineheight-display');
-    if (lineHeightDisplay) lineHeightDisplay.textContent = state.lineHeight;
-    const langDisplay = document.getElementById('settings-lang-display');
-    if (langDisplay) langDisplay.textContent = state.lang === 'fa' ? t.langFa : t.langEn;
-    const themeDisplay = document.getElementById('settings-theme-display');
-    if (themeDisplay) themeDisplay.textContent = state.theme === 'dark' ? t.themeDark : t.themeLight;
-    
-    // دکمه زبان
-    const langLabel = document.getElementById('lang-label');
-    if (langLabel) langLabel.textContent = state.lang === 'fa' ? 'فا' : 'En';
+    document.getElementById('settings-fontsize-display').textContent = state.fontSize;
+    document.getElementById('settings-lineheight-display').textContent = state.lineHeight;
+    document.getElementById('settings-lang-display').textContent = state.lang === 'fa' ? t.langFa : t.langEn;
+    document.getElementById('settings-theme-display').textContent = state.theme === 'dark' ? t.themeDark : t.themeLight;
+    document.getElementById('lang-label').textContent = state.lang === 'fa' ? 'فا' : 'En';
 }
 
 function createNewTab(title = null, content = '', path = null) {
@@ -471,9 +471,9 @@ function renameTab() {
     }
 }
 
-function toggleDirection() {
-    state.dir = state.dir === 'rtl' ? 'ltr' : 'rtl';
-    document.body.setAttribute('dir', state.dir);
+function toggleEditorDirection() {
+    state.editorDir = state.editorDir === 'rtl' ? 'ltr' : 'rtl';
+    editor.style.direction = state.editorDir;
     updateStatusBar();
     saveSettings();
 }
@@ -486,8 +486,7 @@ function setupSettingsDropdown() {
             e.stopPropagation();
             const setting = item.dataset.setting;
             switch (setting) {
-                case 'font':
-                    // چرخش بین فونت‌های موجود
+                case 'font': {
                     const fonts = ["'Vazir', sans-serif", "Consolas, monospace", "'Segoe UI', sans-serif"];
                     let idx = fonts.indexOf(state.fontFamily);
                     idx = (idx + 1) % fonts.length;
@@ -495,7 +494,8 @@ function setupSettingsDropdown() {
                     applySettingsStyles();
                     saveSettings();
                     break;
-                case 'fontsize':
+                }
+                case 'fontsize': {
                     const sizes = [12, 14, 16, 18, 20];
                     let si = sizes.indexOf(state.fontSize);
                     si = (si + 1) % sizes.length;
@@ -503,7 +503,8 @@ function setupSettingsDropdown() {
                     applySettingsStyles();
                     saveSettings();
                     break;
-                case 'lineheight':
+                }
+                case 'lineheight': {
                     const lhValues = [1, 1.2, 1.5, 2];
                     let li = lhValues.indexOf(state.lineHeight);
                     li = (li + 1) % lhValues.length;
@@ -511,55 +512,53 @@ function setupSettingsDropdown() {
                     applySettingsStyles();
                     saveSettings();
                     break;
-                case 'lang':
+                }
+                case 'lang': {
                     state.lang = state.lang === 'fa' ? 'en' : 'fa';
                     applyLocalization(state.lang);
                     applySettingsStyles();
                     saveSettings();
                     break;
-                case 'theme':
+                }
+                case 'theme': {
                     state.theme = state.theme === 'dark' ? 'light' : 'dark';
                     applyTheme();
                     saveSettings();
                     break;
+                }
             }
             updateSettingsDisplay();
         });
     });
 }
 
-// ---------- جستجو با debounce ----------
+// ---------- جستجو با دکمه ----------
 function performSearch() {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-        const query = findInput.value;
-        if (!query) {
-            searchState = { matches: [], currentIndex: -1, query: '' };
-            resultsCount.textContent = '0/0';
-            return;
-        }
-        const text = editor.value;
-        const matchCase = matchCaseChk.checked;
-        const findStr = matchCase ? query : query.toLowerCase();
-        const targetStr = matchCase ? text : text.toLowerCase();
-        const matches = [];
-        let idx = targetStr.indexOf(findStr);
-        while (idx !== -1) {
-            matches.push({ start: idx, end: idx + findStr.length });
-            idx = targetStr.indexOf(findStr, idx + findStr.length || idx + 1);
-        }
-        searchState.matches = matches;
-        searchState.query = query;
-        if (matches.length > 0) {
-            if (searchState.currentIndex < 0 || searchState.currentIndex >= matches.length) {
-                searchState.currentIndex = 0;
-            }
-            highlightMatch(searchState.currentIndex);
-        } else {
-            searchState.currentIndex = -1;
-        }
-        updateSearchUI();
-    }, 300);
+    const query = findInput.value;
+    if (!query) {
+        searchState = { matches: [], currentIndex: -1, query: '' };
+        resultsCount.textContent = '0/0';
+        return;
+    }
+    const text = editor.value;
+    const matchCase = matchCaseChk.checked;
+    const findStr = matchCase ? query : query.toLowerCase();
+    const targetStr = matchCase ? text : text.toLowerCase();
+    const matches = [];
+    let idx = targetStr.indexOf(findStr);
+    while (idx !== -1) {
+        matches.push({ start: idx, end: idx + findStr.length });
+        idx = targetStr.indexOf(findStr, idx + findStr.length || idx + 1);
+    }
+    searchState.matches = matches;
+    searchState.query = query;
+    if (matches.length > 0) {
+        searchState.currentIndex = 0;
+        highlightMatch(0);
+    } else {
+        searchState.currentIndex = -1;
+    }
+    updateSearchUI();
 }
 
 function highlightMatch(idx) {
@@ -596,8 +595,12 @@ function replaceCurrent() {
     const current = searchState.matches[searchState.currentIndex];
     const repl = replaceInput.value;
     const text = editor.value;
-    editor.value = text.substring(0, current.start) + repl + text.substring(current.end);
+    // انجام جایگزینی
+    const newText = text.substring(0, current.start) + repl + text.substring(current.end);
+    editor.value = newText;
+    // بروزرسانی محتوای تب و تاریخچه
     handleTyping();
+    // جستجوی مجدد با همان query
     performSearch();
 }
 
@@ -606,7 +609,7 @@ function replaceAll() {
     if (!query) return;
     const repl = replaceInput.value;
     const matchCase = matchCaseChk.checked;
-    const text = editor.value;
+    let text = editor.value;
     let updatedText = "";
     if (matchCase) {
         updatedText = text.replaceAll(query, repl);
@@ -659,9 +662,11 @@ function setupDragDrop() {
 function registerEvents() {
     setupDragDrop();
 
+    // هماهنگ‌سازی اسکرول گاتر با ادیتور
     editor.addEventListener('scroll', () => {
-        gutter.scrollTop = editor.scrollTop;
+        gutterWrapper.scrollTop = editor.scrollTop;
     });
+
     editor.addEventListener('input', handleTyping);
     editor.addEventListener('keyup', updateStatusBar);
     editor.addEventListener('click', updateStatusBar);
@@ -787,6 +792,7 @@ function registerEvents() {
         updateToggleMenuTexts();
         saveSettings();
     });
+    document.getElementById('menu-toggle-editor-dir').addEventListener('click', toggleEditorDirection);
     document.getElementById('menu-about').addEventListener('click', () => openModal('modal-about'));
 
     // مودال‌ها
@@ -812,8 +818,14 @@ function registerEvents() {
         editor.scrollTop = (target - 1) * (fontSizeVal * state.lineHeight);
     });
 
-    // جستجو
-    findInput.addEventListener('input', performSearch);
+    // جستجو با دکمه
+    document.getElementById('search-btn').addEventListener('click', performSearch);
+    findInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            performSearch();
+        }
+    });
     matchCaseChk.addEventListener('change', performSearch);
     document.getElementById('find-next-btn').addEventListener('click', findNext);
     document.getElementById('find-prev-btn').addEventListener('click', findPrev);
@@ -847,7 +859,7 @@ function registerEvents() {
                 case 'r':
                     if (e.shiftKey) {
                         e.preventDefault();
-                        toggleDirection();
+                        toggleEditorDirection();
                     }
                     break;
             }
