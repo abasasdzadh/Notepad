@@ -246,16 +246,20 @@
             position: relative;
         }
 
-        /* ========== CHANGE: CSS مربوط به شماره خطوط کاملا اصلاح شد ========== */
+        /* ========== تغییرات بسیار مهم CSS برای شماره خطوط ========== */
         .gutter-wrapper {
             position: relative;
             width: 50px;
             min-width: 50px;
             background-color: var(--bg-app);
             border-left: 1px solid var(--border-color);
-            overflow: hidden;
+            overflow-y: auto !important; /* مهم: باعث می‌شود نوار کناری در موبایل اسکرول شود */
+            scrollbar-width: none !important; /* اسکرول‌بار را مخفی می‌کند */
             user-select: none;
             flex-shrink: 0;
+        }
+        .gutter-wrapper::-webkit-scrollbar {
+            display: none !important;
         }
         [dir="rtl"] .gutter-wrapper { border-left: none; border-right: 1px solid var(--border-color); }
         
@@ -482,7 +486,6 @@
     </div>
 
     <div class="menubar" id="menubar">
-        <!-- فایل -->
         <div class="menu-item" id="root-menu-file">
             <span class="menu-title">فایل</span>
             <div class="dropdown">
@@ -495,7 +498,6 @@
                 <div class="dropdown-item" id="menu-close">بستن تب <span class="shortcut-hint">Ctrl+W</span></div>
             </div>
         </div>
-        <!-- ویرایش -->
         <div class="menu-item" id="root-menu-edit">
             <span class="menu-title">ویرایش</span>
             <div class="dropdown">
@@ -512,7 +514,6 @@
                 <div class="dropdown-item" id="menu-rename">تغییر نام فایل <span class="shortcut-hint">F2</span></div>
             </div>
         </div>
-        <!-- نمایش -->
         <div class="menu-item" id="root-menu-view">
             <span class="menu-title">نمایش</span>
             <div class="dropdown">
@@ -527,7 +528,6 @@
                 <div class="dropdown-item" id="menu-toggle-editor-dir">تغییر جهت ویرایشگر <span class="shortcut-hint">Ctrl+Shift+R</span></div>
             </div>
         </div>
-        <!-- تنظیمات -->
         <div class="menu-item" id="root-menu-settings">
             <span class="menu-title">تنظیمات</span>
             <div class="dropdown" id="settings-dropdown">
@@ -539,7 +539,6 @@
                 <div class="dropdown-item" data-setting="theme">تم: <span id="settings-theme-display">تاریک</span></div>
             </div>
         </div>
-        <!-- راهنما -->
         <div class="menu-item" id="root-menu-help">
             <span class="menu-title">راهنما</span>
             <div class="dropdown">
@@ -547,16 +546,12 @@
             </div>
         </div>
 
-        <!-- دکمه نصب PWA -->
         <button class="install-btn hidden" id="install-btn">📲 نصب</button>
-
-        <!-- دکمه‌های تم و زبان -->
         <button class="menu-btn" id="theme-toggle-btn" title="تغییر تم"><span id="theme-icon">🌙</span></button>
         <button class="menu-btn" id="lang-toggle-btn" title="تغییر زبان"><span id="lang-label">فا</span></button>
     </div>
 
     <div class="workspace">
-        <!-- پنل جستجو و جایگزینی -->
         <div class="search-panel" id="search-panel">
             <div class="search-row">
                 <input type="text" id="find-input" class="input-field" placeholder="جستجو...">
@@ -599,7 +594,6 @@
     </div>
 </div>
 
-<!-- مودال‌ها -->
 <div class="modal" id="modal-about">
     <div class="dialog">
         <div class="dialog-header">درباره Notepad وب</div>
