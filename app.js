@@ -315,11 +315,51 @@ function applySettingsStyles() {
     updateGutter();
 }
 
+// متد هوشمند محاسبه اندازه هر خانه شماره خط متناسب با اندازه و کلمات شکسته شده (Word Wrap)
 function updateGutter() {
     if (!state.showLines) return;
     const lines = editor.value.split('\n');
+    
+    // دریافت یا ایجاد گره کمکی آیینه
+    let mirror = document.getElementById('textarea-mirror');
+    if (!mirror) {
+        mirror = document.createElement('div');
+        mirror.id = 'textarea-mirror';
+        mirror.style.position = 'absolute';
+        mirror.style.visibility = 'hidden';
+        mirror.style.top = '-9999px';
+        mirror.style.left = '-9999px';
+        mirror.style.boxSizing = 'border-box';
+        document.body.appendChild(mirror);
+    }
+    
+    // شبیه‌سازی دقیق خواص استایل ادیتور روی آیینه
+    const styles = window.getComputedStyle(editor);
+    mirror.style.whiteSpace = styles.whiteSpace;
+    mirror.style.wordBreak = styles.wordBreak;
+    mirror.style.wordWrap = styles.wordWrap;
+    mirror.style.fontFamily = styles.fontFamily;
+    mirror.style.fontSize = styles.fontSize;
+    mirror.style.lineHeight = styles.lineHeight;
+    mirror.style.padding = styles.padding;
+    mirror.style.border = styles.border;
+    
+    // محاسبه دقیق عرض محدوده متنی ادیتور (منهای اسکرول‌بار)
+    const paddingLeft = parseFloat(styles.paddingLeft) || 0;
+    const paddingRight = parseFloat(styles.paddingRight) || 0;
+    const innerWidth = editor.clientWidth - paddingLeft - paddingRight;
+    mirror.style.width = innerWidth + 'px';
+    
     let html = '';
-    for (let i = 1; i <= lines.length; i++) html += `<div>${i}</div>`;
+    lines.forEach((lineText, idx) => {
+        // پر کردن خطوط خالی با فاصله غیر شکستنی جهت جلوگیری از افت ارتفاع
+        const cleanText = lineText === '' ? ' ' : lineText;
+        mirror.textContent = cleanText;
+        const height = mirror.offsetHeight;
+        
+        html += `<div style="height: ${height}px; display: flex; align-items: flex-start; justify-content: center;">${idx + 1}</div>`;
+    });
+    
     gutter.innerHTML = html;
     gutterWrapper.scrollTop = editor.scrollTop;
 }
@@ -684,6 +724,11 @@ function registerEvents() {
     editor.addEventListener('keyup', updateStatusBar);
     editor.addEventListener('click', updateStatusBar);
     editor.addEventListener('focus', updateStatusBar);
+
+    // به‌روزرسانی ارتفاع خانه‌های سایدبار با تغییر سایز مرورگر
+    window.addEventListener('resize', () => {
+        updateGutter();
+    });
 
     document.getElementById('add-tab').addEventListener('click', () => createNewTab());
 
