@@ -169,6 +169,18 @@
         [dir="ltr"] .dropdown { left: 0; right: auto; }
         .menu-item.active .dropdown { display: block; }
 
+        /* تراز هوشمند ضدسرریز برای لبه‌های بیرونی نمایشگر در موبایل و دسکتاپ */
+        [dir="rtl"] #root-menu-help .dropdown,
+        [dir="rtl"] #settings-dropdown {
+            left: 0;
+            right: auto;
+        }
+        [dir="ltr"] #root-menu-help .dropdown,
+        [dir="ltr"] #settings-dropdown {
+            right: 0;
+            left: auto;
+        }
+
         .dropdown-item {
             display: flex;
             justify-content: space-between;
@@ -246,20 +258,17 @@
         }
         [dir="rtl"] .gutter-wrapper { border-left: none; border-right: 1px solid var(--border-color); }
         
+        /* اصلاح کامل سایدبار برای فعال‌سازی نامحدود ارتفاع عمودی */
         .gutter {
+            width: 100%;
             font-family: var(--font-family) !important;
             font-size: var(--font-size) !important;
             line-height: var(--line-height) !important;
             text-align: center;
             color: #858585;
             padding: 10px 0;
-            white-space: pre;
-            overflow: visible;
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            box-sizing: border-box;
+            display: block; /* حذف مطلق بودن جهت فراهم شدن اسکرول آزاد */
         }
         .gutter div {
             display: flex;
@@ -416,17 +425,8 @@
             min-width: 130px;
         }
 
-        /* بهینه‌سازی ریسپانسیو و پیشگیری از بریدگی منوها در لبه‌های موبایل */
         @media (max-width: 600px) {
-            .menu-item {
-                position: static; /* تغییر مرجع موقعیت‌دهی دراپ‌دان به کل نوار منو */
-            }
-            .dropdown {
-                left: 12px !important;
-                right: 12px !important;
-                width: calc(100% - 24px) !important;
-                min-width: 0 !important;
-            }
+            /* منوها در نسخه موبایل به فرم ستونی و کلاسیک (همانند ورژن‌های قبلی و دسکتاپی) حفظ خواهند شد */
             .search-panel {
                 top: 0 !important; 
                 left: 0 !important; 
@@ -555,6 +555,7 @@
     </div>
 
     <div class="workspace">
+        <!-- پنل جستجو و جایگزینی با دکمه بستن و چیدمان ریسپانسیو -->
         <div class="search-panel" id="search-panel">
             <div class="search-row">
                 <input type="text" id="find-input" class="input-field" placeholder="جستجو...">
