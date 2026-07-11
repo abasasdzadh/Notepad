@@ -169,6 +169,7 @@
         [dir="ltr"] .dropdown { left: 0; right: auto; }
         .menu-item.active .dropdown { display: block; }
 
+        /* جلوگیری از بیرون زدن منوهای سمت راست و چپ در لبه‌های نمایشگر */
         [dir="rtl"] #root-menu-help .dropdown,
         [dir="rtl"] #settings-dropdown {
             left: 0;
@@ -245,44 +246,36 @@
             overflow: hidden;
             position: relative;
         }
-
-        /* ========== تغییرات بسیار مهم CSS برای شماره خطوط ========== */
         .gutter-wrapper {
             position: relative;
             width: 50px;
             min-width: 50px;
             background-color: var(--bg-app);
             border-left: 1px solid var(--border-color);
-            overflow-y: auto !important; /* مهم: باعث می‌شود نوار کناری در موبایل اسکرول شود */
-            scrollbar-width: none !important; /* اسکرول‌بار را مخفی می‌کند */
+            overflow: hidden;
             user-select: none;
             flex-shrink: 0;
         }
-        .gutter-wrapper::-webkit-scrollbar {
-            display: none !important;
-        }
         [dir="rtl"] .gutter-wrapper { border-left: none; border-right: 1px solid var(--border-color); }
         
+        /* اصلاح کامل سایدبار برای فعال‌سازی نامحدود ارتفاع عمودی */
         .gutter {
             width: 100%;
-            position: relative; /* برای موقعیت‌دهی مطلق خطوط استفاده می‌شود */
             font-family: var(--font-family) !important;
             font-size: var(--font-size) !important;
             line-height: var(--line-height) !important;
-            padding: 10px 0;
-            box-sizing: border-box;
-        }
-        .gutter .line-num {
-            position: absolute; /* کلید اصلی حل مشکل انباشت خطا */
-            right: 0;
-            width: 100%;
             text-align: center;
             color: #858585;
+            padding: 10px 0;
             box-sizing: border-box;
-            pointer-events: none;
+            display: block; /* حذف مطلق بودن جهت فراهم شدن اسکرول آزاد */
         }
-        [dir="ltr"] .gutter .line-num { right: auto; left: 0; }
-        /* ======================== پایان تغییرات CSS ======================== */
+        .gutter div {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
 
         .editor {
             flex-grow: 1;
@@ -303,6 +296,7 @@
         .editor.word-wrap { white-space: pre-wrap; word-wrap: break-word; }
         .editor:not(.word-wrap) { white-space: pre; overflow-x: auto; }
 
+        /* نوار وضعیت ظریف و دسکتاپی تک خطه */
         .statusbar {
             display: flex;
             justify-content: space-between;
@@ -432,6 +426,7 @@
         }
 
         @media (max-width: 600px) {
+            /* منوها در نسخه موبایل به فرم ستونی و کلاسیک (همانند دسکتاپی) حفظ خواهند شد */
             .search-panel {
                 top: 0 !important; 
                 left: 0 !important; 
@@ -486,6 +481,7 @@
     </div>
 
     <div class="menubar" id="menubar">
+        <!-- فایل -->
         <div class="menu-item" id="root-menu-file">
             <span class="menu-title">فایل</span>
             <div class="dropdown">
@@ -498,6 +494,7 @@
                 <div class="dropdown-item" id="menu-close">بستن تب <span class="shortcut-hint">Ctrl+W</span></div>
             </div>
         </div>
+        <!-- ویرایش -->
         <div class="menu-item" id="root-menu-edit">
             <span class="menu-title">ویرایش</span>
             <div class="dropdown">
@@ -514,6 +511,7 @@
                 <div class="dropdown-item" id="menu-rename">تغییر نام فایل <span class="shortcut-hint">F2</span></div>
             </div>
         </div>
+        <!-- نمایش -->
         <div class="menu-item" id="root-menu-view">
             <span class="menu-title">نمایش</span>
             <div class="dropdown">
@@ -528,6 +526,7 @@
                 <div class="dropdown-item" id="menu-toggle-editor-dir">تغییر جهت ویرایشگر <span class="shortcut-hint">Ctrl+Shift+R</span></div>
             </div>
         </div>
+        <!-- تنظیمات -->
         <div class="menu-item" id="root-menu-settings">
             <span class="menu-title">تنظیمات</span>
             <div class="dropdown" id="settings-dropdown">
@@ -539,6 +538,7 @@
                 <div class="dropdown-item" data-setting="theme">تم: <span id="settings-theme-display">تاریک</span></div>
             </div>
         </div>
+        <!-- راهنما -->
         <div class="menu-item" id="root-menu-help">
             <span class="menu-title">راهنما</span>
             <div class="dropdown">
@@ -546,7 +546,10 @@
             </div>
         </div>
 
+        <!-- دکمه نصب PWA -->
         <button class="install-btn hidden" id="install-btn">📲 نصب</button>
+
+        <!-- دکمه‌های تم و زبان -->
         <button class="menu-btn" id="theme-toggle-btn" title="تغییر تم"><span id="theme-icon">🌙</span></button>
         <button class="menu-btn" id="lang-toggle-btn" title="تغییر زبان"><span id="lang-label">فا</span></button>
     </div>
@@ -594,6 +597,7 @@
     </div>
 </div>
 
+<!-- مودال‌ها -->
 <div class="modal" id="modal-about">
     <div class="dialog">
         <div class="dialog-header">درباره Notepad وب</div>
