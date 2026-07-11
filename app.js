@@ -315,11 +315,12 @@ function applySettingsStyles() {
     updateGutter();
 }
 
-/* ========== جدیدترین نسخه تابع شماره‌گذاری خطوط (رفع کامل باگ موبایل) ========== */
+// ترازسازی کاملاً هوشمند تکی خطوط بر اساس ابعاد کلمات شکسته شده ادیتور واقعی بدون سربار پدینگ اضافی
 function updateGutter() {
     if (!state.showLines) return;
     const lines = editor.value.split('\n');
     
+    // دریافت یا ایجاد گره کمکی آیینه
     let mirror = document.getElementById('textarea-mirror');
     if (!mirror) {
         mirror = document.createElement('div');
@@ -332,6 +333,7 @@ function updateGutter() {
         document.body.appendChild(mirror);
     }
     
+    // شبیه‌سازی دقیق خواص استایل ادیتور روی آیینه
     const styles = window.getComputedStyle(editor);
     mirror.style.whiteSpace = styles.whiteSpace;
     mirror.style.wordBreak = styles.wordBreak;
@@ -339,36 +341,34 @@ function updateGutter() {
     mirror.style.fontFamily = styles.fontFamily;
     mirror.style.fontSize = styles.fontSize;
     mirror.style.lineHeight = styles.lineHeight;
-    mirror.style.padding = styles.padding; // برای هماهنگی کامل با پدینگ ادیتور
     
-    const paddingLeft = parseFloat(styles.paddingLeft) || 0;
-    const paddingRight = parseFloat(styles.paddingRight) || 0;
-    const innerWidth = editor.clientWidth - paddingLeft - paddingRight;
-    mirror.style.width = innerWidth + 'px';
+    // حذف پدینگ عمودی از تک تک خانه ها جهت تراز بودن بی عیب و نقص در لنگر خطوط
+    mirror.style.paddingTop = '0px';
+    mirror.style.paddingBottom = '0px';
+    mirror.style.paddingLeft = styles.paddingLeft;
+    mirror.style.paddingRight = styles.paddingRight;
+    mirror.style.border = 'none';
+    
+    // تنظیم پدینگ کانتینر اصلی شماره‌گذار با پدینگ ادیتور جهت انطباق ۱۰۰٪
+    gutter.style.paddingTop = styles.paddingTop;
+    gutter.style.paddingBottom = styles.paddingBottom;
+    
+    // محاسبه دقیق عرض محدوده متنی ادیتور (منهای اسکرول‌بار)
+    mirror.style.width = editor.clientWidth + 'px';
     
     let html = '';
-    let accumulatedTop = 0;
-    
     lines.forEach((lineText, idx) => {
-        // مهم: برای خطوط خالی در موبایل به جای space از &nbsp; استفاده می‌کنیم تا ارتفاع محاسبه شود
-        if (lineText === '') {
-            mirror.innerHTML = '&nbsp;';
-        } else {
-            mirror.textContent = lineText;
-        }
+        // پر کردن خطوط خالی با فاصله غیر شکستنی جهت جلوگیری از افت ارتفاع
+        const cleanText = lineText === '' ? ' ' : lineText;
+        mirror.textContent = cleanText;
+        const height = mirror.offsetHeight;
         
-        const lineHeightPx = mirror.offsetHeight;
-        
-        // کلید حل مشکل: استفاده از position: absolute و top به جای height
-        html += `<div class="line-num" style="top: ${accumulatedTop + 10}px;">${idx + 1}</div>`;
-        
-        accumulatedTop += lineHeightPx;
+        html += `<div style="height: ${height}px; display: flex; align-items: flex-start; justify-content: center;">${idx + 1}</div>`;
     });
     
     gutter.innerHTML = html;
-    gutter.style.height = Math.max(accumulatedTop, editor.scrollHeight) + 'px';
+    gutterWrapper.scrollTop = editor.scrollTop;
 }
-/* ======================== پایان تغییرات تابع ======================== */
 
 function updateStatusBar() {
     const t = locales[state.lang];
@@ -591,7 +591,6 @@ function replaceCurrent() {
     performSearch();
 }
 
-// همه
 function replaceAll() {
     const query = findInput.value;
     if (!query) return;
@@ -726,19 +725,7 @@ function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 function registerEvents() {
     setupDragDrop();
 
-    /* ========== حل مشکل اسکرول در موبایل ========== */
-    let isScrolling = false;
-    editor.addEventListener('scroll', () => {
-        if (!isScrolling) {
-            window.requestAnimationFrame(() => {
-                gutterWrapper.scrollTop = editor.scrollTop;
-                isScrolling = false;
-            });
-            isScrolling = true;
-        }
-    });
-    /* ======================== پایان تغییرات اسکرول ======================== */
-
+    editor.addEventListener('scroll', () => gutterWrapper.scrollTop = editor.scrollTop);
     editor.addEventListener('input', handleTyping);
     editor.addEventListener('keyup', updateStatusBar);
     editor.addEventListener('click', updateStatusBar);
