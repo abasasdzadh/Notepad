@@ -315,7 +315,7 @@ function applySettingsStyles() {
     updateGutter();
 }
 
-/* ========== CHANGE: تابع شماره گذاری خطوط با روش جدید و بدون خطای انباشت ========== */
+/* ========== جدیدترین نسخه تابع شماره‌گذاری خطوط (رفع کامل باگ موبایل) ========== */
 function updateGutter() {
     if (!state.showLines) return;
     const lines = editor.value.split('\n');
@@ -350,11 +350,16 @@ function updateGutter() {
     let accumulatedTop = 0;
     
     lines.forEach((lineText, idx) => {
-        const cleanText = lineText === '' ? ' ' : lineText;
-        mirror.textContent = cleanText;
+        // مهم: برای خطوط خالی در موبایل به جای space از &nbsp; استفاده می‌کنیم تا ارتفاع محاسبه شود
+        if (lineText === '') {
+            mirror.innerHTML = '&nbsp;';
+        } else {
+            mirror.textContent = lineText;
+        }
+        
         const lineHeightPx = mirror.offsetHeight;
         
-        // کلید حل مشکل: استفاده از position: absolute و top به جای height محاسباتی
+        // کلید حل مشکل: استفاده از position: absolute و top به جای height
         html += `<div class="line-num" style="top: ${accumulatedTop + 10}px;">${idx + 1}</div>`;
         
         accumulatedTop += lineHeightPx;
@@ -721,7 +726,7 @@ function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 function registerEvents() {
     setupDragDrop();
 
-    /* ========== CHANGE: رویداد اسکرول ادیتور برای رفع لگ در موبایل ========== */
+    /* ========== حل مشکل اسکرول در موبایل ========== */
     let isScrolling = false;
     editor.addEventListener('scroll', () => {
         if (!isScrolling) {
@@ -929,5 +934,5 @@ if ('serviceWorker' in navigator) {
         .catch(err => console.error('SW registration failed:', err));
 }
 
-// شپروع و راه‌اندازی برنامه
+// شروع و راه‌اندازی برنامه
 init();
